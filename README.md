@@ -1,30 +1,40 @@
 <p align="center">
-  <img src="assets/banner.png" alt="Jan Radzik — on-device AI, Android agents, Flutter" width="100%">
+  <img src="assets/banner.png" alt="WOJAN — Czarne Wilki Prawdy" width="100%">
 </p>
 
 <p align="center">
-  <em>Buduję prywatne systemy AI, które żyją na telefonie — czytają ekran, wykonują zadania i myślą lokalnie.</em>
+  <img src="assets/crest.png" alt="Herb Czarne Wilki Prawdy — Wojan" width="420">
+</p>
+
+<h1 align="center">WOJAN</h1>
+<p align="center">
+  <strong>CZARNE WILKI PRAWDY</strong><br>
+  <em>Wszyscy wolni obywatele niepodległej.</em>
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/WOJAN-Czarne_Wilki_Prawdy-111111?style=for-the-badge&labelColor=8B0000" alt="WOJAN">
   <img src="https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter">
   <img src="https://img.shields.io/badge/Android-API_26+-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android">
-  <img src="https://img.shields.io/badge/llama.cpp-Vulkan-00E5FF?style=for-the-badge" alt="llama.cpp">
-  <img src="https://img.shields.io/badge/Dart-%3E%3D3.3-0175C2?style=for-the-badge&logo=dart&logoColor=white" alt="Dart">
-  <img src="https://img.shields.io/badge/Privacy-On--device_first-7C5CFF?style=for-the-badge" alt="On-device first">
+  <img src="https://img.shields.io/badge/llama.cpp-Vulkan-111111?style=for-the-badge" alt="llama.cpp">
+  <img src="https://img.shields.io/badge/On--device-first-8B0000?style=for-the-badge" alt="On-device first">
 </p>
 
 ---
 
-### Cześć — I build agents that can actually use a phone.
+Jestem **Wojan**. Buduję prywatne systemy AI, które żyją na telefonie — czytają ekran, wykonują zadania i myślą lokalnie. Kod zostaje przy właścicielu urządzenia.
 
-I'm **Jan Radzik**. I design Flutter systems at the boundary of **native Android**, **accessibility**, and **on-device LLMs**. The question I keep returning to:
+I design Flutter systems at the boundary of **native Android**, **accessibility**, and **on-device LLMs**. The question I keep returning to:
 
 > Can a model finish a real multi-step task on *any* installed app — without screenshots-as-crutch, without leaking your screen to the cloud, and without a human holding the phone?
 
-Two products answer that from opposite sides: one **acts** on the UI, the other **thinks** on the device.
+Dwa systemy odpowiadają z dwóch stron: jeden **działa** na UI, drugi **myśli** na urządzeniu.
 
-<br>
+<p align="center">
+  <img src="assets/mark.png" alt="Znak wilka" width="160">
+</p>
+
+---
 
 ## Featured systems
 
@@ -114,11 +124,11 @@ A production Flutter client that treats **on-device inference as the default** a
 
 **On the metal (Android / iOS)** the `llama_flutter_android` plugin wraps `llama.cpp`:
 
-1. Probe **Vulkan** (Android) or **Metal** (iOS) and pick offload layers  
-2. Size the thread pool from the device tier — ultra / high / mid / low  
-3. Stream GGUF load progress so the UI never freezes  
-4. `generateChat()` with native templates: ChatML, Llama-3, Gemma, Phi  
-5. Fall back to a hand-built prompt if the native template fails  
+1. Probe **Vulkan** (Android) or **Metal** (iOS) and pick offload layers
+2. Size the thread pool from the device tier — ultra / high / mid / low
+3. Stream GGUF load progress so the UI never freezes
+4. `generateChat()` with native templates: ChatML, Llama-3, Gemma, Phi
+5. Fall back to a hand-built prompt if the native template fails
 
 Idle cutoff at **5 s**, hard timeout at **180 s** — the chat stays responsive on a mid-range Snapdragon.
 
@@ -212,10 +222,10 @@ InferenceService.supportsLocalInference
 ---
 
 <p align="center">
-  <img height="160" src="https://github-readme-stats.vercel.app/api?username=janradzik863&show_icons=true&theme=tokyonight&hide_border=true&bg_color=0D1117&count_private=true" alt="GitHub stats">
-  <img height="160" src="https://github-readme-stats.vercel.app/api/top-langs/?username=janradzik863&layout=compact&theme=tokyonight&hide_border=true&bg_color=0D1117" alt="Top languages">
+  <img height="160" src="https://github-readme-stats.vercel.app/api?username=janradzik863&show_icons=true&theme=blood&hide_border=true&bg_color=0D1117&count_private=true" alt="GitHub stats">
+  <img height="160" src="https://github-readme-stats.vercel.app/api/top-langs/?username=janradzik863&layout=compact&theme=blood&hide_border=true&bg_color=0D1117" alt="Top languages">
 </p>
 
 <p align="center">
-  <sub>Flutter · Android · on-device LLM · agents that tap real pixels</sub>
+  <sub>WOJAN · Czarne Wilki Prawdy · Flutter · Android · on-device LLM</sub>
 </p>

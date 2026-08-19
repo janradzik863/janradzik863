@@ -1,0 +1,55 @@
+name: czarne_wilki_prawdy
+description: >-
+  "Czarne Wilki Prawdy – Wszyscy Won!" — natywna, wieloplatformowa aplikacja
+  (Android + desktop) z lokalną inferencją AI, ręcznym sterowaniem mikrofonem,
+  biblioteką głosów, planerem publikacji, szyfrowanym komunikatorem i radiem
+  społecznościowym. Motyw biało-czerwono-czarny (husaria/wilk).
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Zarządzanie stanem
+  provider: ^6.1.2
+
+  # Lokalna baza danych (historia konwersacji — wymaganie #14)
+  sqflite: ^2.3.3
+  sqflite_common_ffi: ^2.3.3
+  path: ^1.9.0
+  path_provider: ^2.1.3
+
+  # Ustawienia / trwała pamięć
+  shared_preferences: ^2.2.3
+
+  # Głosy AI (TTS) — wymaganie #3
+  flutter_tts: ^4.0.2
+
+  # Sieć (tryb online — wymaganie #5)
+  http: ^1.2.1
+
+  # Kryptografia E2E komunikatora (#12): X25519 + HKDF + AES-256-GCM
+  cryptography: ^2.7.0
+
+  # Powiadomienia i kanały natywne (#17)
+  flutter_local_notifications: ^17.2.2
+
+  # Sterowanie głosowe (mowa → tekst) dla agenta
+  speech_to_text: ^6.6.2
+
+  # Pomocnicze
+  uuid: ^4.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/

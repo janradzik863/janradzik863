@@ -1,0 +1,11 @@
+# Skopiuj ten plik do: android/key.properties i uzupełnij wartości.
+# Klucz podpisowy (keystore) wygenerujesz np.:
+#   keytool -genkey -v -keystore release.keystore -alias czarnewilki \
+#           -keyalg RSA -keysize 2048 -validity 10000
+#
+# UWAGA: nigdy nie rotuj klucza między wydaniami — Android przyjmuje aktualizacje
+# tylko podpisane tym samym kluczem. Zachowaj backup keystore!
+storePassword=CHANGE_ME
+keyPassword=CHANGE_ME
+keyAlias=czarnewilki
+storeFile=release.keystore

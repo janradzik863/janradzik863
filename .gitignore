@@ -1,0 +1,25 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+*.iml
+.idea/
+.flutter-plugins-dependencies
+
+# Android
+android/.gradle/
+android/app/build/
+android/key.properties
+*.jks
+*.keystore
+
+# Desktop
+linux/flutter/ephemeral/
+windows/flutter/ephemeral/
+macos/Flutter/ephemeral/
+
+# OS
+.DS_Store

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Czarne Wilki Prawdy</string>
+    <string name="accessibility_service_description">
+        Usługa pozwala aplikacji interpretować zawartość ekranu i wykonywać
+        autonomiczne zadania (klikanie, wprowadzanie tekstu, przewijanie) w
+        innych aplikacjach, zgodnie z poleceniami użytkownika.
+    </string>
+</resources>

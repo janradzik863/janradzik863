@@ -3,12 +3,12 @@
 </p>
 
 <p align="center">
-  <img src="assets/crest.png" alt="Herb Czarne Wilki Prawdy — Wojan" width="420">
+  <img src="assets/crest.png" alt="Czarne Wilki Prawdy — Wojan — Wszyscy wolni obywatele niepodległej" width="720">
 </p>
 
-<h1 align="center">WOJAN</h1>
+<h1 align="center">CZARNE WILKI PRAWDY WOJAN</h1>
 <p align="center">
-  <strong>CZARNE WILKI PRAWDY</strong><br>
+  <strong>WOJAN</strong> · Czarne Wilki Prawdy<br>
   <em>Wszyscy wolni obywatele niepodległej.</em>
 </p>
 

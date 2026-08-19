@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0E0E12" />
+  <title>Czarne Wilki</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <div class="flag"><span class="w"></span><span class="c"></span></div>
+
+    <!-- HOME -->
+    <section id="home" class="screen active">
+      <div class="scroll">
+        <div class="logo-wrap"><img src="crest.jpg" alt="Czarne Wilki Prawdy" /></div>
+        <div class="brand">CZARNE WILKI</div>
+        <p class="tag">prywatny asystent AI — twoje urządzenie, twoje zasady</p>
+        <div class="flag" style="border-radius:2px;margin:0 24px"><span class="w"></span><span class="c"></span></div>
+        <div class="chips">
+          <span id="chip-net" class="chip on">SIECIOWY</span>
+          <span id="chip-model" class="chip model">BRAK MODELU</span>
+        </div>
+        <div class="grid">
+          <div class="tile" data-go="chat"><div class="emoji">💬</div><h3>Czat</h3><p>rozmowa i generowanie</p></div>
+          <div class="tile" data-go="models"><div class="emoji">🧠</div><h3>Modele</h3><p>OpenRouter i chmura</p></div>
+          <div class="tile" data-go="voices"><div class="emoji">🎙️</div><h3>Głosy</h3><p>biblioteka i odsłuch</p></div>
+          <div class="tile" data-go="agent"><div class="emoji">🐺</div><h3>Agent</h3><p>imię, rola, charakter</p></div>
+          <div class="tile" data-go="auto"><div class="emoji">⚙️</div><h3>Automatyzacja</h3><p>zadania na urządzeniu</p></div>
+          <div class="tile" data-go="settings"><div class="emoji">🔧</div><h3>Ustawienia</h3><p>tryb pracy, klucz API</p></div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <p class="muted">Historia rozmów zostaje na tym telefonie (pamięć aplikacji). W trybie Offline nie wychodzi żadne połączenie. Klucz API idzie wyłącznie do wybranego dostawcy.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAT -->
+    <section id="chat" class="screen">
+      <div class="topbar">
+        <button class="icon-btn back" data-go="home">‹</button>
+        <h1>Czat<span class="sub" id="chat-model">wybierz model</span></h1>
+        <button class="icon-btn" id="btn-new" title="Nowa rozmowa">＋</button>
+      </div>
+      <div class="flag"><span class="w"></span><span class="c"></span></div>
+      <div id="chat-err" class="err" hidden><span></span><button type="button">×</button></div>
+      <div id="chat-log" class="scroll chat-log"></div>
+      <div id="chat-busy" class="busy" hidden><div class="spin"></div>Wilki myślą…</div>
+      <div class="composer">
+        <button class="round alt" id="btn-plus" title="Więcej">＋</button>
+        <textarea id="chat-input" rows="1" placeholder="Pisz do Wilków…"></textarea>
+        <button class="round alt" id="btn-mic" title="Mikrofon">🎤</button>
+        <button class="round" id="btn-send" title="Wyślij">↑</button>
+      </div>
+    </section>
+
+    <!-- MODELS -->
+    <section id="models" class="screen">
+      <div class="topbar">
+        <button class="icon-btn back" data-go="home">‹</button>
+        <h1>Modele</h1>
+      </div>
+      <div class="flag"><span class="w"></span><span class="c"></span></div>
+      <div class="scroll">
+        <div class="card switch">
+          <div>
+            <strong>Tryb Sieciowy</strong>
+            <p class="muted" id="net-hint">Dozwolone połączenia: chmura.</p>
+          </div>
+          <input type="checkbox" id="net-toggle" checked />
+        </div>
+        <div class="card">
+          <h2>MODELE CHMUROWE (API)</h2>
+          <p class="muted">Darmowy mózg: konto na OpenRouter.ai → klucz → chip poniżej.</p>
+          <div class="presets">
+            <button class="preset" data-base="https://openrouter.ai/api/v1" data-model="openai/gpt-oss-120b:free">OpenRouter (darmowe)</button>
+            <button class="preset" data-base="https://api.deepseek.com/v1" data-model="deepseek-chat">DeepSeek</button>
+            <button class="preset" data-base="https://api.openai.com/v1" data-model="gpt-4o-mini">OpenAI</button>
+          </div>
+          <label>Base URL</label>
+          <input id="m-base" placeholder="https://openrouter.ai/api/v1" />
+          <label>Klucz API</label>
+          <input id="m-key" type="password" placeholder="sk-or-…" />
+          <label>Nazwa modelu</label>
+          <input id="m-id" placeholder="openai/gpt-oss-120b:free" />
+          <div style="height:10px"></div>
+          <button class="btn" id="btn-save-model">Zapisz i aktywuj model chmurowy</button>
+        </div>
+        <div id="model-list"></div>
+        <div class="card">
+          <h2>MODELE LOKALNE (GGUF)</h2>
+          <p class="muted">Lokalne GGUF (llama.cpp) są w pełnym wydaniu natywnym Flutter. Ten APK jest gotowy do sideloadu i obsługuje chmurę od razu — bez NDK.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- VOICES -->
+    <section id="voices" class="screen">
+      <div class="topbar">
+        <button class="icon-btn back" data-go="home">‹</button>
+        <h1>Głosy</h1>
+      </div>
+      <div class="flag"><span class="w"></span><span class="c"></span></div>
+      <div class="scroll">
+        <div class="card">
+          <h2>BIBLIOTEKA TTS</h2>
+          <p class="muted">Głosy zainstalowane w systemie. Polski na początku listy.</p>
+          <label>Tempo <span id="rate-val">1.00</span></label>
+          <input type="range" id="tts-rate" min="0.5" max="1.6" step="0.05" value="1" />
+          <label>Wysokość <span id="pitch-val">1.00</span></label>
+          <input type="range" id="tts-pitch" min="0.5" max="1.8" step="0.05" value="1" />
+        </div>
+        <div id="voice-list"></div>
+      </div>
+    </section>
+
+    <!-- AGENT -->
+    <section id="agent" class="screen">
+      <div class="topbar">
+        <button class="icon-btn back" data-go="home">‹</button>
+        <h1>Agent</h1>
+      </div>
+      <div class="flag"><span class="w"></span><span class="c"></span></div>
+      <div class="scroll">
+        <div class="card">
+          <h2>PERSONALIZACJA</h2>
+          <label>Imię</label>
+          <input id="ag-name" />
+          <label>Rola</label>
+          <input id="ag-role" />
+          <label>System Prompt</label>
+          <textarea id="ag-sys"></textarea>
+          <label>Temperatura <span id="temp-val">0.70</span></label>
+          <input type="range" id="ag-temp" min="0" max="1.5" step="0.05" value="0.7" />
+          <div style="height:10px"></div>
+          <button class="btn" id="btn-save-agent">Zapisz profil</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- AUTOMATION -->
+    <section id="auto" class="screen">
+      <div class="topbar">
+        <button class="icon-btn back" data-go="home">‹</button>
+        <h1>Automatyzacja</h1>
+      </div>
+      <div class="flag"><span class="w"></span><span class="c"></span></div>
+      <div class="scroll">
+        <div class="card">
+          <h2>STEROWANIE EKRANEM</h2>
+          <p class="muted">Natywna usługa dostępności (drzewo UI → stuknięcia → wpisywanie) jest w module Kotlin aplikacji Flutter. Ten pakiet sideload daje czat, głosy i chmurę od razu.</p>
+          <p class="muted">Pełny APK z automatyzacją buduje GitHub Actions (`.github/workflows/build-apk.yml`) po przyznaniu uprawnienia <em>workflows</em>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="settings" class="screen">
+      <div class="topbar">
+        <button class="icon-btn back" data-go="home">‹</button>
+        <h1>Ustawienia</h1>
+      </div>
+      <div class="flag"><span class="w"></span><span class="c"></span></div>
+      <div class="scroll">
+        <div class="card switch">
+          <div>
+            <strong>Tryb Sieciowy</strong>
+            <p class="muted">Wyłączony: zero połączeń.</p>
+          </div>
+          <input type="checkbox" id="net-toggle-2" checked />
+        </div>
+        <div class="card">
+          <h2>KOPIA ZAPASOWA (BEZ CHMURY)</h2>
+          <p class="muted">Jeden plik JSON. Przenosisz go ręcznie — pendrive, kabel, wiadomość do siebie.</p>
+          <div class="row">
+            <button class="btn" id="btn-export">Eksportuj</button>
+            <button class="btn ghost" id="btn-import">Importuj</button>
+          </div>
+          <input type="file" id="import-file" accept="application/json" hidden />
+        </div>
+        <div class="card">
+          <h2>PRYWATNOŚĆ</h2>
+          <p class="muted">• Historia: lokalna pamięć aplikacji.<br>• Klucze API: tylko do wybranego dostawcy.<br>• Offline = zerowe połączenia.<br>• Kopia: zwykły JSON, bez serwerów pośrednich.</p>
+        </div>
+        <div class="card">
+          <strong>CZARNE WILKI</strong>
+          <p class="muted">Wersja 0.1.0 — sideload APK.<br>WOJAN · Czarne Wilki Prawdy · Wszyscy wolni obywatele niepodległej.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script src="cw.js"></script>
+</body>
+</html>

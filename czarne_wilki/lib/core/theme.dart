@@ -61,7 +61,7 @@ ThemeData buildCwTheme() {
         letterSpacing: 0.4,
       ),
     ),
-    cardTheme: const CardTheme(
+    cardTheme: const CardThemeData(
       color: CwColors.surface,
       elevation: 0,
       margin: EdgeInsets.zero,

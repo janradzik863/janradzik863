@@ -48,6 +48,10 @@ u wybranego dostawcy, tryb Offline = zero połączeń sieciowych.
     # 4. Uruchomienie / budowa
     flutter run -d <device-id>
     flutter build apk --release        # → build/app/outputs/flutter-apk/
+
+GitHub Actions (`.github/workflows/build-apk.yml`) buduje ten sam APK
+na każdym pushu i publikuje **Release `v0.1.0`** z plikiem
+`CzarneWilki-v0.1.0.apk`.
     flutter build linux --release      # → build/linux/x64/release/bundle/
     flutter build windows --release    # → build/windows/x64/runner/Release/
 

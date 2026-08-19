@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme.dart';
+import '../../data/models.dart';
 import '../../engine/engine_manager.dart';
 import '../../services/app_services.dart';
+import '../../services/rbac_service.dart';
+import '../../services/sync_bridge.dart';
 import '../../services/backup_service.dart';
 import '../../services/files_service.dart';
 
+/// Ustawienia aplikacji: tryb pracy (pkt 5), synchronizacja (pkt 1),
+/// RBAC (pkt 15), tryb bez maski (pkt 19), kopia zapasowa.
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -15,14 +20,26 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final BackupService _backup = BackupService();
-  final FilesService _files = FilesService();
-  bool _includeApiKeys = false;
+  final _backup = BackupService();
   bool _busy = false;
+  bool _includeApiKeys = false;
+
+  // Sync bridge
+  final _hostCtrl = TextEditingController(text: '192.168.1.100');
+
+  @override
+  void dispose() {
+    _hostCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final engines = context.watch<EngineManager>();
+    final profile = context.watch<AgentProfileController>();
+    final rbac = context.watch<RbacService>();
+    final sync = context.watch<SyncBridge>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ustawienia'),
@@ -34,32 +51,231 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Tryb Sieciowy'),
-            subtitle: const Text(
-              'Włączony: chmura i pobieranie modeli.\n'
-              'Wyłączony: aplikacja pracuje w 100% lokalnie.',
-              style: TextStyle(fontSize: 12, color: CwColors.whiteDim),
+          // --- Punkt 5: Przełącznik trybu ---
+          const Text('TRYB PRACY',
+              style: TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 1.5,
+                  color: CwColors.crimson)),
+          const SizedBox(height: 8),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                children: [
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    activeColor: CwColors.online,
+                    title: Text(
+                      engines.online ? 'TRYB SIECIOWY' : 'TRYB OFFLINE',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: engines.online
+                            ? CwColors.online
+                            : CwColors.offline,
+                      ),
+                    ),
+                    subtitle: Text(
+                      engines.online
+                          ? 'Połączenia z chmurą dozwolone — dane mogą '
+                              'opuszczać urządzenie.'
+                          : '100% na urządzeniu — żadne dane nie wychodzą na '
+                              'zewnątrz. Wymaga modelu lokalnego GGUF.',
+                      style:
+                          const TextStyle(fontSize: 12, color: CwColors.whiteDim),
+                    ),
+                    value: engines.online,
+                    onChanged: (v) => engines.setOnline(v),
+                  ),
+                ],
+              ),
             ),
-            value: engines.online,
-            activeColor: CwColors.crimson,
-            onChanged: (v) => engines.setOnline(v),
           ),
-          const Divider(),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.memory_outlined, color: CwColors.crimson),
-            title: const Text('Aktywny model'),
-            subtitle: Text(
-              engines.activeModel?.displayName ??
-                  'brak — wybierz w ekranie Modeli',
-              style: const TextStyle(fontSize: 12, color: CwColors.whiteDim),
-            ),
-          ),
-          const Divider(),
+          const SizedBox(height: 16),
 
-          // ------------------------------------- kopia zapasowa / synchronizacja
+          // --- Punkt 19: Tryb bez maski ---
+          const Text('TRYB BEZ MASKI',
+              style: TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 1.5,
+                  color: CwColors.crimson)),
+          const SizedBox(height: 8),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                activeColor: CwColors.crimson,
+                title: const Text('Zniesienie filtrów AI',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
+                subtitle: const Text(
+                  'Otwarte modele pracują bez wbudowanych ograniczeń. '
+                  'Odpowiedzialność za treści ponosi wyłącznie użytkownik.',
+                  style: TextStyle(fontSize: 12, color: CwColors.whiteDim),
+                ),
+                value: profile.profile.unfilteredMode,
+                onChanged: (v) =>
+                    profile.save(profile.profile.copyWith(unfilteredMode: v)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // --- Punkt 1: Synchronizacja międzyplatformowa ---
+          const Text('SYNCHRONIZACJA URZĄDZEŃ',
+              style: TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 1.5,
+                  color: CwColors.crimson)),
+          const SizedBox(height: 8),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        sync.connected
+                            ? Icons.link
+                            : Icons.link_off,
+                        color: sync.connected
+                            ? CwColors.online
+                            : CwColors.whiteDim,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          sync.statusText,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: sync.connected
+                                ? CwColors.online
+                                : CwColors.whiteDim,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: sync.connected
+                              ? null
+                              : () => sync.startServer(),
+                          child: const Text('Serwer (desktop)'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: sync.connected
+                              ? () => sync.stop()
+                              : null,
+                          child: const Text('Rozłącz'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _hostCtrl,
+                          decoration: const InputDecoration(
+                            hintText: 'IP serwera',
+                            isDense: true,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton(
+                        onPressed: sync.connected
+                            ? null
+                            : () => sync.connectToServer(_hostCtrl.text.trim()),
+                        child: const Text('Połącz'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // --- Punkt 15: RBAC ---
+          const Text('KONTROLA DOSTĘPU (RBAC)',
+              style: TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 1.5,
+                  color: CwColors.crimson)),
+          const SizedBox(height: 8),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (rbac.isLoggedIn) ...[
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const CircleAvatar(
+                        backgroundColor: CwColors.crimsonDark,
+                        child: Icon(Icons.person,
+                            color: CwColors.white, size: 20),
+                      ),
+                      title: Text(rbac.currentUser!.username,
+                          style: const TextStyle(fontWeight: FontWeight.w700)),
+                      subtitle: Text(
+                        'Rola: ${rbac.currentUser!.role.name.toUpperCase()}',
+                        style: const TextStyle(
+                            fontSize: 12, color: CwColors.crimson),
+                      ),
+                      trailing: OutlinedButton(
+                        onPressed: rbac.logout,
+                        child: const Text('Wyloguj'),
+                      ),
+                    ),
+                    if (rbac.isAdmin)
+                      FilledButton.icon(
+                        onPressed: () => _addUserDialog(context, rbac),
+                        icon: const Icon(Icons.person_add, size: 18),
+                        label: const Text('Dodaj użytkownika'),
+                      ),
+                  ] else if (!rbac.setupComplete) ...[
+                    const Text(
+                      'Pierwszy uruchomienie — utwórz konto administratora.',
+                      style: TextStyle(fontSize: 13, color: CwColors.whiteDim),
+                    ),
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: () => _setupAdmin(context, rbac),
+                      child: const Text('Utwórz administratora'),
+                    ),
+                  ] else ...[
+                    FilledButton(
+                      onPressed: () => _loginDialog(context, rbac),
+                      child: const Text('Zaloguj się'),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // --- Kopia zapasowa ---
+          const Text('KOPIA ZAPASOWA',
+              style: TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 1.5,
+                  color: CwColors.crimson)),
+          const SizedBox(height: 8),
           _BackupCard(
             busy: _busy,
             includeApiKeys: _includeApiKeys,
@@ -67,207 +283,213 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onExport: _export,
             onImport: _import,
           ),
-          const SizedBox(height: 12),
+        ],
+      ),
+    );
+  }
 
-          const Card(
-            child: Padding(
-              padding: EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(children: [
-                    Icon(Icons.lock_outline, size: 16, color: CwColors.crimson),
-                    SizedBox(width: 8),
-                    Text('PRYWATNOŚĆ',
-                        style: TextStyle(
-                            fontSize: 11,
-                            letterSpacing: 1.2,
-                            color: CwColors.crimson)),
-                  ]),
-                  SizedBox(height: 8),
-                  Text(
-                    '• Historia rozmów: lokalna baza SQLite na urządzeniu.\n'
-                    '• Klucze API: przechowywane lokalnie, wysyłane wyłącznie '
-                    'do wybranego dostawcy.\n'
-                    '• Tryb Offline: zerowe połączenia sieciowe.\n'
-                    '• Automatyzacja: jawny dziennik każdej akcji agenta.\n'
-                    '• Kopia zapasowa: zwykły plik JSON przenoszony ręcznie — '
-                    'bez serwerów pośrednich.',
-                    style: TextStyle(fontSize: 12, color: CwColors.whiteDim),
-                  ),
-                ],
-              ),
+  void _setupAdmin(BuildContext context, RbacService rbac) {
+    final userCtrl = TextEditingController();
+    final passCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: CwColors.surface,
+        title: const Text('Utwórz administratora'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: userCtrl,
+              decoration: const InputDecoration(hintText: 'Nazwa użytkownika'),
             ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: passCtrl,
+              obscureText: true,
+              decoration: const InputDecoration(hintText: 'Hasło'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Anuluj'),
           ),
-          const SizedBox(height: 12),
-          const Card(
-            child: Padding(
-              padding: EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('CZARNE WILKI',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w900, letterSpacing: 3)),
-                  SizedBox(height: 4),
-                  Text(
-                    'Wersja 0.1.0 — prywatny asystent AI.\n'
-                    'Flutter + Kotlin (usługi dostępności Androida),\n'
-                    'llama.cpp dla modeli lokalnych GGUF.',
-                    style: TextStyle(fontSize: 12, color: CwColors.whiteDim),
-                  ),
-                ],
-              ),
-            ),
+          FilledButton(
+            onPressed: () async {
+              if (userCtrl.text.trim().isEmpty || passCtrl.text.isEmpty) return;
+              await rbac.createAdmin(userCtrl.text.trim(), passCtrl.text);
+              if (ctx.mounted) Navigator.pop(ctx);
+            },
+            child: const Text('Utwórz'),
           ),
         ],
       ),
     );
   }
 
-  // ------------------------------------------------------------ eksport
-
-  Future<void> _export() async {
-    setState(() => _busy = true);
-    try {
-      final json = await _backup.create(includeApiKeys: _includeApiKeys);
-      final stamp = DateTime.now();
-      final name = 'czarne_wilki_backup_'
-          '${stamp.year}${_two(stamp.month)}${_two(stamp.day)}_'
-          '${_two(stamp.hour)}${_two(stamp.minute)}.json';
-      final saved = await _files.saveTextFile(fileName: name, content: json);
-      if (!mounted) return;
-      if (saved != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Kopia zapisana: $saved')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Eksport nie powiódł się: $e')));
-      }
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+  void _loginDialog(BuildContext context, RbacService rbac) {
+    final userCtrl = TextEditingController();
+    final passCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: CwColors.surface,
+        title: const Text('Logowanie'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: userCtrl,
+              decoration: const InputDecoration(hintText: 'Nazwa użytkownika'),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: passCtrl,
+              obscureText: true,
+              decoration: const InputDecoration(hintText: 'Hasło'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Anuluj'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final ok =
+                  await rbac.login(userCtrl.text.trim(), passCtrl.text);
+              if (ctx.mounted) {
+                Navigator.pop(ctx);
+                if (!ok) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Nieprawidłowy login lub hasło.')),
+                  );
+                }
+              }
+            },
+            child: const Text('Zaloguj'),
+          ),
+        ],
+      ),
+    );
   }
 
-  // ------------------------------------------------------------- import
-
-  Future<void> _import() async {
-    setState(() => _busy = true);
-    BackupSummary? summary;
-    try {
-      final json = await _files.pickTextFile();
-      if (json == null) return;
-      summary = await _backup.inspect(json);
-    } on BackupException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.message)));
-      }
-      return;
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Nie udało się odczytać pliku: $e')));
-      }
-      return;
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-
-    if (!mounted || summary == null) return;
-
-    // Dialog decyzji: co dokładnie zaimportować.
-    var doConversations = true;
-    var doModels = true;
-    var doProfile = summary.hasAgentProfile;
-
-    final confirmed = await showDialog<bool>(
+  void _addUserDialog(BuildContext context, RbacService rbac) {
+    final userCtrl = TextEditingController();
+    final passCtrl = TextEditingController();
+    var role = 'user';
+    showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialog) => AlertDialog(
           backgroundColor: CwColors.surface,
-          title: const Text('Import kopii zapasowej'),
+          title: const Text('Dodaj użytkownika'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Rozmowy: ${summary.totalConversations} '
-                '(nowych: ${summary.newConversations}, '
-                'duplikaty: ${summary.duplicates})\n'
-                'Modele: ${summary.modelCount}\n'
-                'Profil agenta: ${summary.hasAgentProfile ? "dostępny" : "brak"}'
-                '${summary.hasApiKeys ? "\n⚠ Plik zawiera klucze API" : ""}',
-                style: const TextStyle(fontSize: 13, color: CwColors.whiteDim),
+              TextField(
+                controller: userCtrl,
+                decoration: const InputDecoration(hintText: 'Nazwa'),
               ),
               const SizedBox(height: 10),
-              _ImportCheckbox(
-                label: 'Rozmowy',
-                value: doConversations,
-                onChanged: (v) => setDialog(() => doConversations = v ?? false),
+              TextField(
+                controller: passCtrl,
+                obscureText: true,
+                decoration: const InputDecoration(hintText: 'Hasło'),
               ),
-              _ImportCheckbox(
-                label: 'Modele (bez plików GGUF — wskaż ponownie)',
-                value: doModels,
-                onChanged: (v) => setDialog(() => doModels = v ?? false),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                value: role,
+                dropdownColor: CwColors.surfaceAlt,
+                items: const [
+                  DropdownMenuItem(value: 'admin', child: Text('Admin')),
+                  DropdownMenuItem(
+                      value: 'moderator', child: Text('Moderator')),
+                  DropdownMenuItem(value: 'user', child: Text('Użytkownik')),
+                  DropdownMenuItem(value: 'viewer', child: Text('Czytelnik')),
+                ],
+                onChanged: (v) => setDialog(() => role = v ?? 'user'),
               ),
-              if (summary.hasAgentProfile)
-                _ImportCheckbox(
-                  label: 'Profil agenta (nadpisuje obecny)',
-                  value: doProfile,
-                  onChanged: (v) => setDialog(() => doProfile = v ?? false),
-                ),
             ],
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
+              onPressed: () => Navigator.pop(ctx),
               child: const Text('Anuluj'),
             ),
             FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Importuj'),
+              onPressed: () async {
+                if (userCtrl.text.trim().isEmpty || passCtrl.text.isEmpty) {
+                  return;
+                }
+                final userRole = switch (role) {
+                  'admin' => UserRole.admin,
+                  'moderator' => UserRole.moderator,
+                  'viewer' => UserRole.viewer,
+                  _ => UserRole.user,
+                };
+                await rbac.addUser(
+                    userCtrl.text.trim(), passCtrl.text, userRole);
+                if (ctx.mounted) Navigator.pop(ctx);
+              },
+              child: const Text('Dodaj'),
             ),
           ],
         ),
       ),
     );
+  }
 
-    if (confirmed != true) return;
-
+  void _export() async {
     setState(() => _busy = true);
     try {
-      final result = await _backup.restore(
-        summary,
-        conversations: doConversations,
-        models: doModels,
-        agentProfile: doProfile,
-      );
-      // Odśwież kontrolery (profil, czat).
+      await _backup.export(includeApiKeys: _includeApiKeys);
       if (mounted) {
-        await context.read<AgentProfileController>().load();
-        await context.read<ChatController>().reloadFromDb();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-              'Zaimportowano: ${result.importedConversations} rozmów, '
-              '${result.importedModels} modeli '
-              '(pominięto duplikatów: ${result.skippedDuplicates}).'),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Kopia zapasowa wyeksportowana.')),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Import nie powiódł się: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Eksport nie powiódł się: $e')),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
   }
 
-  static String _two(int n) => n.toString().padLeft(2, '0');
+  void _import() async {
+    setState(() => _busy = true);
+    try {
+      final summary = await _backup.pickAndAnalyze();
+      if (summary == null) {
+        setState(() => _busy = false);
+        return;
+      }
+
+      if (mounted) {
+        await context.read<AgentProfileController>().load();
+        await context.read<ChatController>().reloadFromDb();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Import zakończony.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Import nie powiódł się: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 }
 
 class _BackupCard extends StatelessWidget {
@@ -293,22 +515,6 @@ class _BackupCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(children: [
-              Icon(Icons.sync_alt_outlined, size: 16, color: CwColors.crimson),
-              SizedBox(width: 8),
-              Text('KOPIA ZAPASOWA I SYNCHRONIZACJA (BEZ CHMURY)',
-                  style: TextStyle(
-                      fontSize: 10.5,
-                      letterSpacing: 1.1,
-                      color: CwColors.crimson)),
-            ]),
-            const SizedBox(height: 8),
-            const Text(
-              'Zapisz historię, modele i profil agenta do pliku JSON i przenieś '
-              'go między telefonem a komputerem (kabel, pendrive). Import '
-              'scala dane i pomija duplikaty.',
-              style: TextStyle(fontSize: 12, color: CwColors.whiteDim),
-            ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               dense: true,
@@ -322,14 +528,14 @@ class _BackupCard extends StatelessWidget {
               onChanged: onIncludeKeys,
             ),
             if (busy)
-              const Padding(
-                padding: EdgeInsets.all(8),
-                child: Center(
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(8),
                   child: SizedBox(
                     width: 22,
                     height: 22,
-                    child:
-                        CircularProgressIndicator(strokeWidth: 2, color: CwColors.crimson),
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: CwColors.crimson),
                   ),
                 ),
               )
@@ -356,30 +562,6 @@ class _BackupCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _ImportCheckbox extends StatelessWidget {
-  const _ImportCheckbox({
-    required this.label,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final String label;
-  final bool value;
-  final ValueChanged<bool?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return CheckboxListTile(
-      dense: true,
-      contentPadding: EdgeInsets.zero,
-      activeColor: CwColors.crimson,
-      title: Text(label, style: const TextStyle(fontSize: 13)),
-      value: value,
-      onChanged: onChanged,
     );
   }
 }

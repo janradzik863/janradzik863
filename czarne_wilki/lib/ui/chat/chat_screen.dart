@@ -321,20 +321,30 @@ class _InputBarState extends State<_InputBar> {
               onSelected: (v) {
                 if (v == 'image') _promptImage(context);
                 if (v == 'voice') chat.speakLast();
+                if (v == 'audio') _promptAudio(context);
+                if (v == 'video') _promptVideo(context);
               },
               itemBuilder: (_) => const [
                 PopupMenuItem(
                   value: 'text',
                   enabled: false,
-                  child: Text('Tekst — pisz w polu poniżej'),
+                  child: Text('📝 Tekst — pisz w polu poniżej'),
                 ),
                 PopupMenuItem(
                   value: 'image',
-                  child: Text('Obraz — wygeneruj grafikę'),
+                  child: Text('🖼 Obraz — wygeneruj grafikę'),
                 ),
                 PopupMenuItem(
                   value: 'voice',
-                  child: Text('Głos — przeczytaj odpowiedź'),
+                  child: Text('🔊 Dźwięk — przeczytaj odpowiedź'),
+                ),
+                PopupMenuItem(
+                  value: 'audio',
+                  child: Text('🎵 Audio — synteza mowy'),
+                ),
+                PopupMenuItem(
+                  value: 'video',
+                  child: Text('🎬 Wideo — opis sceny (AI)'),
                 ),
               ],
             ),
@@ -399,7 +409,7 @@ class _InputBarState extends State<_InputBar> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: CwColors.surface,
-        title: const Text('Generowanie obrazu'),
+        title: const Text('🖼 Generowanie obrazu'),
         content: TextField(
           controller: ctrl,
           maxLines: 3,
@@ -418,6 +428,71 @@ class _InputBarState extends State<_InputBar> {
               if (p.isNotEmpty) widget.chat.generateImage(p);
             },
             child: const Text('Generuj'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _promptAudio(BuildContext context) {
+    final ctrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: CwColors.surface,
+        title: const Text('🎵 Synteza mowy'),
+        content: TextField(
+          controller: ctrl,
+          maxLines: 3,
+          decoration: const InputDecoration(
+              hintText: 'Tekst do odczytania głosem agenta…'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Anuluj'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final p = ctrl.text.trim();
+              Navigator.pop(ctx);
+              if (p.isNotEmpty) widget.chat.generateAudio(p);
+            },
+            child: const Text('Syntezuj'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _promptVideo(BuildContext context) {
+    final ctrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: CwColors.surface,
+        title: const Text('🎬 Opis wideo (AI)'),
+        content: TextField(
+          controller: ctrl,
+          maxLines: 3,
+          decoration: const InputDecoration(
+              hintText: 'Opisz scenę, którą agent ma zinterpretować…'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Anuluj'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final p = ctrl.text.trim();
+              Navigator.pop(ctx);
+              if (p.isNotEmpty) {
+                widget.chat.send(
+                  'Wygeneruj szczegółowy opis sceny wideo na podstawie: $p');
+              }
+            },
+            child: const Text('Generuj opis'),
           ),
         ],
       ),

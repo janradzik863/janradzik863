@@ -5,6 +5,8 @@ import '../../core/theme.dart';
 import '../../data/models.dart';
 import '../../services/app_services.dart';
 
+/// Punkt 9: Okno Personalizacji Agenta.
+/// Punkt 19: Przełącznik trybu bez maski (unfilteredMode).
 class PersonalizationScreen extends StatefulWidget {
   const PersonalizationScreen({super.key});
 
@@ -13,9 +15,12 @@ class PersonalizationScreen extends StatefulWidget {
 }
 
 class _PersonalizationScreenState extends State<PersonalizationScreen> {
-  late final TextEditingController _name;
-  late final TextEditingController _role;
-  late final TextEditingController _sys;
+  late TextEditingController _name;
+  late TextEditingController _role;
+  late TextEditingController _prompt;
+  late double _temp;
+  late bool _unfiltered;
+  bool _changed = false;
 
   @override
   void initState() {
@@ -23,20 +28,40 @@ class _PersonalizationScreenState extends State<PersonalizationScreen> {
     final p = context.read<AgentProfileController>().profile;
     _name = TextEditingController(text: p.name);
     _role = TextEditingController(text: p.role);
-    _sys = TextEditingController(text: p.systemPrompt);
+    _prompt = TextEditingController(text: p.systemPrompt);
+    _temp = p.temperature;
+    _unfiltered = p.unfilteredMode;
   }
 
   @override
   void dispose() {
     _name.dispose();
     _role.dispose();
-    _sys.dispose();
+    _prompt.dispose();
     super.dispose();
+  }
+
+  void _save() {
+    final ctrl = context.read<AgentProfileController>();
+    ctrl.save(AgentProfile(
+      name: _name.text.trim(),
+      role: _role.text.trim(),
+      systemPrompt: _prompt.text.trim(),
+      temperature: _temp,
+      unfilteredMode: _unfiltered,
+    ));
+    setState(() => _changed = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Profil agenta zapisany.')),
+    );
+  }
+
+  void _mark() {
+    if (!_changed) setState(() => _changed = true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final ctrl = context.watch<AgentProfileController>();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Personalizacja agenta'),
@@ -44,92 +69,125 @@ class _PersonalizationScreenState extends State<PersonalizationScreen> {
           preferredSize: Size.fromHeight(3),
           child: CwFlagStrip(),
         ),
+        actions: [
+          if (_changed)
+            FilledButton(
+              onPressed: _save,
+              child: const Text('Zapisz'),
+            ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text(
-            'Zdefiniuj, kim jest Twój agent: imię, rola i instrukcja systemowa '
-            '(System Prompt) stosowana przy każdej rozmowie i zadaniu.',
-            style: TextStyle(color: CwColors.whiteDim, fontSize: 12),
-          ),
+          const Center(child: CwLogo(width: 100)),
           const SizedBox(height: 16),
+          const Text('TOŻSAMOŚĆ AGENTA',
+              style: TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 1.5,
+                  color: CwColors.crimson)),
+          const SizedBox(height: 8),
           TextField(
             controller: _name,
             decoration: const InputDecoration(labelText: 'Imię agenta'),
+            onChanged: (_) => _mark(),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           TextField(
             controller: _role,
-            decoration: const InputDecoration(
-                labelText: 'Rola (np. doradca, tłumacz, szef sztabu)'),
-          ),
-          const SizedBox(height: 10),
-          TextField(
-            controller: _sys,
-            minLines: 6,
-            maxLines: 14,
-            decoration: const InputDecoration(
-              labelText: 'Instrukcja systemowa (System Prompt)',
-              alignLabelWithHint: true,
-            ),
-          ),
-          const SizedBox(height: 14),
-          const Text('TEMPERATURA (kreatywność)',
-              style: TextStyle(
-                  fontSize: 11, letterSpacing: 1.5, color: CwColors.whiteDim)),
-          Slider(
-            value: ctrl.profile.temperature,
-            min: 0.0,
-            max: 1.5,
-            activeColor: CwColors.crimson,
-            label: ctrl.profile.temperature.toStringAsFixed(1),
-            onChanged: (v) => ctrl.save(
-              ctrl.profile.copyWith(temperature: v),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('PODGLĄD PROMPTU SYSTEMOWEGO',
-                      style: TextStyle(
-                          fontSize: 10.5,
-                          letterSpacing: 1.2,
-                          color: CwColors.crimson)),
-                  const SizedBox(height: 6),
-                  Text(
-                    AgentProfile(
-                      name: _name.text,
-                      role: _role.text,
-                      systemPrompt: _sys.text,
-                    ).effectiveSystemPrompt,
-                    style:
-                        const TextStyle(fontSize: 12, color: CwColors.whiteDim),
-                  ),
-                ],
-              ),
-            ),
+            decoration: const InputDecoration(labelText: 'Rola agenta'),
+            onChanged: (_) => _mark(),
           ),
           const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: () async {
-              await ctrl.save(AgentProfile(
-                name: _name.text.trim(),
-                role: _role.text.trim(),
-                systemPrompt: _sys.text.trim(),
-                temperature: ctrl.profile.temperature,
-              ));
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Profil agenta zapisany.')));
-              }
+          const Text('INSTRUKCJA SYSTEMOWA (System Prompt)',
+              style: TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 1.5,
+                  color: CwColors.crimson)),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _prompt,
+            maxLines: 8,
+            decoration: const InputDecoration(
+              hintText: 'Wpisz własną instrukcję systemową…\n'
+                  'Definiuje charakter, styl i ograniczenia agenta.',
+            ),
+            onChanged: (_) => _mark(),
+          ),
+          const SizedBox(height: 16),
+          const Text('TEMPERATURA',
+              style: TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 1.5,
+                  color: CwColors.whiteDim)),
+          Slider(
+            value: _temp,
+            min: 0.0,
+            max: 2.0,
+            divisions: 20,
+            activeColor: CwColors.crimson,
+            label: _temp.toStringAsFixed(1),
+            onChanged: (v) {
+              setState(() => _temp = v);
+              _mark();
             },
-            icon: const Icon(Icons.save_outlined),
-            label: const Text('Zapisz profil'),
+          ),
+          Text(
+            'Niska (0.0) = precyzyjne odpowiedzi • Wysoka (2.0) = kreatywne',
+            style: const TextStyle(fontSize: 11, color: CwColors.whiteDim),
+          ),
+          const SizedBox(height: 16),
+
+          // Punkt 19: Tryb bez maski
+          const Text('TRYB BEZ MASKI',
+              style: TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 1.5,
+                  color: CwColors.crimson)),
+          const SizedBox(height: 8),
+          Card(
+            child: SwitchListTile(
+              activeColor: CwColors.crimson,
+              title: const Text('Zniesienie filtrów AI'),
+              subtitle: const Text(
+                'Model odpowiada na KAŻDE pytanie bez ograniczeń. '
+                'Działa wyłącznie z otwartymi modelami (np. abliterated).',
+                style: TextStyle(fontSize: 12, color: CwColors.whiteDim),
+              ),
+              value: _unfiltered,
+              onChanged: (v) {
+                setState(() => _unfiltered = v);
+                _mark();
+              },
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Podgląd efektywnego promptu
+          const Text('PODGLĄD EFEKTYWNEGO PROMPTU',
+              style: TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 1.5,
+                  color: CwColors.whiteDim)),
+          const SizedBox(height: 8),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: SelectableText(
+                AgentProfile(
+                  name: _name.text.trim(),
+                  role: _role.text.trim(),
+                  systemPrompt: _prompt.text.trim(),
+                  temperature: _temp,
+                  unfilteredMode: _unfiltered,
+                ).effectiveSystemPrompt,
+                style: const TextStyle(
+                    fontSize: 12,
+                    color: CwColors.whiteDim,
+                    fontFamily: 'monospace'),
+              ),
+            ),
           ),
         ],
       ),

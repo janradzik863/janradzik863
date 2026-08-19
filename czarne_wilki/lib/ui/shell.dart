@@ -2,10 +2,17 @@ import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
 import 'agent/personalization_screen.dart';
+import 'announcements/announcements_screen.dart';
 import 'automation/automation_screen.dart';
 import 'chat/chat_screen.dart';
+import 'code/code_screen.dart';
+import 'donations/donations_screen.dart';
 import 'home_screen.dart';
+import 'messenger/messenger_screen.dart';
 import 'models/models_screen.dart';
+import 'moderation/moderation_screen.dart';
+import 'planner/planner_screen.dart';
+import 'radio/radio_screen.dart';
 import 'settings/settings_screen.dart';
 import 'voices/voices_screen.dart';
 
@@ -31,6 +38,13 @@ class _CwShellState extends State<CwShell> {
     VoicesScreen(),
     PersonalizationScreen(),
     AutomationScreen(),
+    PlannerScreen(),
+    MessengerScreen(),
+    RadioScreen(),
+    CodeScreen(),
+    ModerationScreen(),
+    AnnouncementsScreen(),
+    DonationsScreen(),
     SettingsScreen(),
   ];
 
@@ -70,6 +84,13 @@ class _CwRail extends StatelessWidget {
     'Głosy',
     'Agent',
     'Automatyzacja',
+    'Planer',
+    'Komunikator',
+    'Radio',
+    'Kodowanie',
+    'Moderacja',
+    'Ogłoszenia',
+    'Wsparcie',
     'Ustawienia',
   ];
 
@@ -80,6 +101,13 @@ class _CwRail extends StatelessWidget {
     Icons.record_voice_over_outlined,
     Icons.smart_toy_outlined,
     Icons.precision_manufacturing_outlined,
+    Icons.calendar_month_outlined,
+    Icons.lock_outlined,
+    Icons.radio,
+    Icons.code,
+    Icons.admin_panel_settings_outlined,
+    Icons.campaign_outlined,
+    Icons.volunteer_activism,
     Icons.settings_outlined,
   ];
 
@@ -94,21 +122,27 @@ class _CwRail extends StatelessWidget {
       selectedLabelTextStyle: const TextStyle(
         color: CwColors.white,
         fontWeight: FontWeight.w800,
-        fontSize: 11,
+        fontSize: 10,
       ),
       unselectedLabelTextStyle:
-          const TextStyle(color: CwColors.whiteDim, fontSize: 11),
+          const TextStyle(color: CwColors.whiteDim, fontSize: 10),
       leading: Padding(
         padding: const EdgeInsets.symmetric(vertical: 14),
         child: Column(
           children: [
-            const CwLogo(width: 64),
-            const SizedBox(height: 6),
+            const CwLogo(width: 56),
+            const SizedBox(height: 4),
             Container(
               width: 48,
               height: 2,
               color: CwColors.crimson,
             ),
+            const SizedBox(height: 2),
+            const Text('CW',
+                style: TextStyle(
+                    color: CwColors.crimson,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900)),
           ],
         ),
       ),
@@ -118,8 +152,9 @@ class _CwRail extends StatelessWidget {
             icon: Icon(
               _icons[i],
               color: i == index ? CwColors.crimson : CwColors.whiteDim,
+              size: 20,
             ),
-            selectedIcon: Icon(_icons[i], color: CwColors.crimson),
+            selectedIcon: Icon(_icons[i], color: CwColors.crimson, size: 20),
             label: Text(_labels[i]),
           ),
       ],

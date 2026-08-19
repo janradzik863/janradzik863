@@ -13,6 +13,8 @@ import '../voice/stt_service.dart';
 import '../voice/tts_service.dart';
 
 /// Profil agenta (personalizacja): imię, rola, instrukcja systemowa.
+/// Punkt 9: Okno Personalizacji Agenta.
+/// Punkt 19: Tryb bez maski (unfilteredMode).
 class AgentProfileController extends ChangeNotifier {
   AgentProfileController({AppDatabase? db}) : _db = db ?? AppDatabase();
 
@@ -22,7 +24,8 @@ class AgentProfileController extends ChangeNotifier {
     name: 'Wilk',
     role: 'Wierny asystent właściciela urządzenia',
     systemPrompt:
-        'Jesteś prywatnym asystentem AI działającym w aplikacji Czarne Wilki. '
+        'Jesteś prywatnym asystentem AI działającym w aplikacji '
+        'Czarne Wilki Prawdy — Wszyscy Won! '
         'Odpowiadasz rzeczowo, po polsku, w tonie godnym i konkretnym. '
         'Wszystkie rozmowy mają miejsce na urządzeniu użytkownika.',
   );
@@ -34,12 +37,14 @@ class AgentProfileController extends ChangeNotifier {
     final role = await _db.getSetting('agent_role');
     final sys = await _db.getSetting('agent_system_prompt');
     final temp = double.tryParse(await _db.getSetting('agent_temp') ?? '');
+    final unfiltered = await _db.getSetting('agent_unfiltered');
     if (name != null || role != null || sys != null) {
       _profile = _profile.copyWith(
         name: name,
         role: role,
         systemPrompt: sys,
         temperature: temp,
+        unfilteredMode: unfiltered == 'true',
       );
       notifyListeners();
     }
@@ -51,12 +56,15 @@ class AgentProfileController extends ChangeNotifier {
     await _db.setSetting('agent_role', p.role);
     await _db.setSetting('agent_system_prompt', p.systemPrompt);
     await _db.setSetting('agent_temp', p.temperature.toString());
+    await _db.setSetting('agent_unfiltered', p.unfilteredMode.toString());
     notifyListeners();
   }
 }
 
 /// Kontroler czatu: rozmowa, historia w SQLite, streaming odpowiedzi,
-/// generowanie obrazów i odczyt głosowy.
+/// generowanie obrazów/dźwięku/wideo i odczyt głosowy.
+/// Punkt 6: Minimalistyczny czat z menu podręcznym „+"
+/// Punkt 14: Lokalna pamięć stała historii konwersacji
 class ChatController extends ChangeNotifier {
   ChatController({
     required this.engines,
@@ -76,6 +84,7 @@ class ChatController extends ChangeNotifier {
   final SttService stt = SttService();
 
   Conversation? _conversation;
+  List<Conversation> _allConversations = [];
   List<Message> _messages = [];
   String _partial = '';
   bool _busy = false;
@@ -83,19 +92,30 @@ class ChatController extends ChangeNotifier {
   StreamSubscription? _sttWords;
 
   Conversation? get conversation => _conversation;
+  List<Conversation> get allConversations => _allConversations;
   List<Message> get messages => _messages;
   String get partial => _partial;
   bool get busy => _busy;
   String? get error => _error;
   bool get micActive => stt.isListening;
 
-  /// Rozpoznane słowa z mikrofonu (do pola wprowadzania).
   final micWordsCtrl = StreamController<String>.broadcast();
   Stream<String> get micWords => micWordsCtrl.stream;
 
-  Future<void> openConversation() async {
-    if (_conversation != null) return;
+  Future<void> openConversation([int? specificId]) async {
+    if (specificId != null) {
+      // Otwórz konkretną rozmowę
+      _conversation = _allConversations.cast<Conversation?>().firstWhere(
+            (c) => c?.id == specificId,
+            orElse: () => null,
+          );
+    }
+    if (_conversation != null) {
+      await _reload();
+      return;
+    }
     final list = await _db.listConversations();
+    _allConversations = list;
     if (list.isEmpty) {
       _conversation = await _db.createConversation('Rozmowa');
     } else {
@@ -107,10 +127,25 @@ class ChatController extends ChangeNotifier {
   Future<void> newConversation() async {
     _conversation = await _db.createConversation('Rozmowa');
     _messages = [];
+    _allConversations = await _db.listConversations();
     notifyListeners();
   }
 
-  /// Odświeża stan z bazy (np. po imporcie kopii zapasowej).
+  Future<void> switchConversation(int id) async {
+    _conversation = null;
+    await openConversation(id);
+  }
+
+  Future<void> deleteConversation(int id) async {
+    await _db.deleteConversation(id);
+    if (_conversation?.id == id) {
+      _conversation = null;
+      _messages = [];
+    }
+    _allConversations = await _db.listConversations();
+    notifyListeners();
+  }
+
   Future<void> reloadFromDb() async {
     _conversation = null;
     await openConversation();
@@ -119,6 +154,7 @@ class ChatController extends ChangeNotifier {
   Future<void> _reload() async {
     if (_conversation == null) return;
     _messages = await _db.messagesFor(_conversation!.id);
+    _allConversations = await _db.listConversations();
     notifyListeners();
   }
 
@@ -186,7 +222,7 @@ class ChatController extends ChangeNotifier {
     }
   }
 
-  /// Generowanie obrazu (tylko tryb Sieciowy — usługa zewnętrzna).
+  /// Punkt 6: Generowanie obrazu (menu „+")
   Future<void> generateImage(String prompt) async {
     if (!engines.online) {
       _error = 'Generowanie obrazów wymaga trybu Sieciowego '
@@ -203,7 +239,7 @@ class ChatController extends ChangeNotifier {
         id: 0,
         conversationId: _conversation!.id,
         role: Role.user,
-        content: prompt,
+        content: '🖼 $prompt',
         createdAt: DateTime.now(),
       ));
       await _db.addMessage(Message(
@@ -213,6 +249,7 @@ class ChatController extends ChangeNotifier {
         content: 'Wygenerowano obraz.',
         createdAt: DateTime.now(),
         attachmentPath: path,
+        attachmentType: 'image',
       ));
       await _reload();
     } catch (e) {
@@ -224,7 +261,31 @@ class ChatController extends ChangeNotifier {
     }
   }
 
-  /// Odczyt ostatniej odpowiedzi głosu agenta.
+  /// Generowanie dźwięku (punkt 6: menu „+")
+  Future<void> generateAudio(String prompt) async {
+    // Używa TTS do syntezy tekstu jako audio
+    await openConversation();
+    await _db.addMessage(Message(
+      id: 0,
+      conversationId: _conversation!.id,
+      role: Role.user,
+      content: '🔊 $prompt',
+      createdAt: DateTime.now(),
+    ));
+    await _db.addMessage(Message(
+      id: 0,
+      conversationId: _conversation!.id,
+      role: Role.assistant,
+      content: prompt,
+      createdAt: DateTime.now(),
+      attachmentType: 'audio',
+    ));
+    await _reload();
+    // Odczytaj głosem
+    await voice.speak(prompt);
+  }
+
+  /// Odczyt ostatniej odpowiedzi głosem agenta.
   Future<void> speakLast() async {
     final last = _messages.lastWhereOrNull((m) => m.role == Role.assistant);
     if (last != null) await voice.speak(last.content);
@@ -232,13 +293,15 @@ class ChatController extends ChangeNotifier {
 
   // ------------------------------------------------------------ mikrofon
 
-  Future<void> startMic() async {
+  /// Punkt 2: Ręczne sterowanie mikrofonem — START
+  Future<bool> startMic() async {
     _sttWords ??= stt.onWords.listen(micWordsCtrl.add);
-    await stt.start();
+    final ok = await stt.start();
     notifyListeners();
+    return ok;
   }
 
-  /// Wyłącznie ręczne zatrzymanie (przycisk Stop).
+  /// Punkt 2: STOP — wyłącznie ręczne (przycisk Stop)
   Future<void> stopMic() async {
     await stt.stop();
     notifyListeners();
@@ -268,8 +331,8 @@ extension _LastWhereOrNull<T> on Iterable<T> {
   }
 }
 
-/// Kontroler głosów (biblioteka TTS). Na platformach bez wsparcia TTS
-/// (np. Linux) lista głosów pozostaje pusta, a UI pokazuje stosowny komunikat.
+/// Kontroler głosów (biblioteka TTS).
+/// Punkt 3: System biblioteki głosów dla AI z odsłuchem i przełączaniem.
 class VoiceController extends ChangeNotifier {
   VoiceController({TtsService? tts}) : _tts = tts ?? TtsService();
 
@@ -331,6 +394,7 @@ class VoiceController extends ChangeNotifier {
 }
 
 /// Kontroler automatyzacji urządzenia.
+/// Punkt 8: Autonomiczny montaż i udostępnianie postów.
 class AutomationController extends ChangeNotifier {
   AutomationController({required this.engines})
       : agent = TaskAgent(engineGetter: () => engines.engine);
@@ -362,15 +426,22 @@ class AutomationController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> openSettings() async => bridge.openAccessibilitySettings();
+  Future<void> openSettings() async {
+    await bridge.openAccessibilitySettings();
+  }
 
-  Future<void> run(String goal) async {
-    log.clear();
-    notifyListeners();
+  Future<void> runTask(String goal) async {
     await agent.run(goal);
   }
 
-  void stop() => agent.cancel();
+  void cancelTask() {
+    agent.cancel();
+  }
+
+  void clearLog() {
+    log.clear();
+    notifyListeners();
+  }
 
   @override
   void dispose() {

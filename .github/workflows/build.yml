@@ -1,0 +1,156 @@
+name: "Czarne Wilki — Build APK & Desktop"
+
+on:
+  push:
+    branches: [main, 'arena/*']
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  # ============================================================
+  # Android APK (arm64-v8a)
+  # ============================================================
+  build-apk:
+    name: "🐺 Android APK"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: czarne_wilki
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze code
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings || true
+
+      - name: Build debug APK
+        run: flutter build apk --debug
+
+      - name: Build release APK (universal)
+        run: flutter build apk --release
+
+      - name: Build release APK (split per ABI)
+        run: flutter build apk --release --split-per-abi
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: czarne-wilki-debug-apk
+          path: czarne_wilki/build/app/outputs/flutter-apk/app-debug.apk
+
+      - name: Upload release APK (universal)
+        uses: actions/upload-artifact@v4
+        with:
+          name: czarne-wilki-release-apk
+          path: czarne_wilki/build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload release APKs (per ABI)
+        uses: actions/upload-artifact@v4
+        with:
+          name: czarne-wilki-release-apk-split
+          path: czarne_wilki/build/app/outputs/flutter-apk/*-release.apk
+
+  # ============================================================
+  # Linux Desktop (x64)
+  # ============================================================
+  build-linux:
+    name: "🖥️ Linux Desktop"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: czarne_wilki
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libstdc++-12-dev
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: stable
+
+      - name: Enable Linux desktop
+        run: flutter config --enable-linux-desktop
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Linux release
+        run: flutter build linux --release
+
+      - name: Package Linux bundle
+        run: |
+          cd build/linux/x64/release/bundle
+          tar czf /tmp/czarne-wilki-linux-x64.tar.gz .
+
+      - name: Upload Linux bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: czarne-wilki-linux-x64
+          path: /tmp/czarne-wilki-linux-x64.tar.gz
+
+  # ============================================================
+  # GitHub Release (on tag push)
+  # ============================================================
+  release:
+    name: "📦 GitHub Release"
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build-apk, build-linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Czarne Wilki Prawdy ${{ github.ref_name }}"
+          body: |
+            ## 🐺 Czarne Wilki Prawdy — Wszyscy Won!
+
+            ### Pliki do pobrania:
+            - **Android APK** (debug) — do testów
+            - **Android APK** (release, universal) — gotowy do instalacji
+            - **Android APK** (release, split per ABI) — optymalne rozmiary
+            - **Linux x64** — skompilowany plik wykonywalny
+
+            ### Instrukcja instalacji APK:
+            1. Pobierz `app-release.apk` (lub `app-arm64-v8a-release.apk` dla ARM64)
+            2. Na telefonie: Ustawienia → Bezpieczeństwo → Zezwól na instalację z nieznanych źródeł
+            3. Otwórz pobrany plik i zainstaluj
+            4. Uruchom „Czarne Wilki" i przejdź do Ustawień
+
+            ### Linux:
+            1. Rozpakuj `czarne-wilki-linux-x64.tar.gz`
+            2. Uruchom: `./czarne_wilki`
+          files: |
+            czarne-wilki-debug-apk/app-debug.apk
+            czarne-wilki-release-apk/app-release.apk
+            czarne-wilki-release-apk-split/*-release.apk
+            czarne-wilki-linux-x64/czarne-wilki-linux-x64.tar.gz

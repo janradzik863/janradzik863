@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ekran startowy: biel u góry, karmazyn u dołu — barwy flagowe. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:gravity="top|fill_horizontal" android:height="60dp">
+        <color android:color="@color/cw_crimson" />
+    </item>
+    <item android:drawable="@color/cw_black" />
+</layer-list>

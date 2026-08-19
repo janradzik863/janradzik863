@@ -1,0 +1,25 @@
+# Czarne Wilki — sekcja pomocnicza (Flutter/Dart)
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Android / Gradle
+android/.gradle/
+android/local.properties
+android/key.properties
+*.iml
+.idea/
+
+# Podpisy
+*.keystore
+*.jks
+
+# Modele GGUF (duże pliki trzymamy poza repo)
+*.gguf
+
+# Środowisko
+.DS_Store

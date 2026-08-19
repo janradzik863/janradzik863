@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Czarne Wilki</string>
+    <string name="accessibility_description">
+        Pozwala agentowi Czarne Wilki odczytać układ aktywnego ekranu
+        i wykonywać polecenia użytkownika na tym urządzeniu: stuknięcia,
+        przewijanie i wpisywanie tekstu. Usługa działa wyłącznie lokalnie,
+        a każda akcja agenta jest rejestrowana w widocznym dzienniku.
+    </string>
+</resources>

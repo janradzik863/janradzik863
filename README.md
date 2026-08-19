@@ -175,6 +175,30 @@ Prerequisites: Flutter ≥ 3.3, JDK 17, Android SDK 26+, NDK. Per-ABI APKs must 
 
 ---
 
+## Czarne Wilki v0.1.0 — aplikacja w tym repozytorium
+
+W katalogu [`czarne_wilki/`](czarne_wilki/README.md) żyje trzeci system: kompletna
+aplikacja **Flutter + natywny Kotlin** (Android + desktop Linux/Windows), zbudowana
+wokół tych samych zasad: **on-device first, lokalnie domyślnie**.
+
+- **Silnik hybrydowy** — lokalne GGUF (llama.cpp przez `llama_cpp_dart`) + chmura
+  zgodna z OpenAI (OpenRouter free / DeepSeek); tryb Offline = zero połączeń sieciowych.
+- **Czat z historią w SQLite** wspólną dla wszystkich modeli, personalizacja agenta
+  (imię, rola, System Prompt), biblioteka głosów TTS, ciągły nasłuch mikrofonu
+  z wyłącznie ręcznym STOP.
+- **Automatyzacja urządzenia** — usługa dostępności (drzewo ekranu z geometrią
+  współrzędnych, stuknięcia, wpisywanie tekstu, przewijanie) w pętli
+  *ekran → AI → akcja*, z jawnym dziennikiem akcji i bramką polityki: agent działa
+  tylko na urządzeniu właściciela i nie udaje człowieka wobec osób trzecich.
+- **Kopia zapasowa / synchronizacja bez chmury** — jeden plik JSON, scalanie
+  z pomijaniem duplikatów, klucze API domyślnie poza eksportem.
+
+Budowa krok po kroku, macierz możliwości i konfiguracja darmowego mózgu:
+[`czarne_wilki/README.md`](czarne_wilki/README.md).
+
+---
+
+
 ## Stack I reach for
 
 <p align="center">

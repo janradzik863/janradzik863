@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Konfiguracja usługi dostępności „Czarne Wilki — Sterowanie Ekranem”.
+  Odczyt treści ekranu (do interpretacji układu przez agenta) oraz
+  wykonywanie gestów (stuknięcia, przewijanie).
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/accessibility_description"
+    android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagDefault|flagReportViewIds|flagRetrieveInteractiveWindows"
+    android:canRetrieveScreenContent="true"
+    android:canPerformGestures="true" />

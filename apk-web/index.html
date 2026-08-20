@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0E0E12" />
+  <title>Czarne Wilki</title>
+  <style>
+    :root{--cr:#dc143c;--dk:#a20a2a;--bk:#0e0e12;--sf:#17171d;--al:#1f1f27;--wh:#f7f5f2;--dm:#b9b4ad;--on:#3dcb6f;--of:#e0a63d;--t:env(safe-area-inset-top,0px);--b:env(safe-area-inset-bottom,0px)}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;height:100%;background:var(--bk);color:var(--wh);font-family:Roboto,"Noto Sans",system-ui,sans-serif}
+    body{overflow:hidden}#app{height:100%;min-height:100vh;display:flex;flex-direction:column}
+    .flag{height:3px;display:flex;flex-shrink:0}.flag i{flex:1}.w{background:var(--wh)}.c{background:var(--cr)}
+    .sc{display:none;flex:1;flex-direction:column;min-height:0}.sc.on{display:flex}
+    .bar{padding:calc(10px + var(--t)) 12px 10px;display:flex;align-items:center;gap:8px}
+    .bar h1{margin:0;font-size:18px;font-weight:800;flex:1}.bar .sub{display:block;font-size:11px;color:var(--dm);font-weight:500}
+    .sv{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(22px + var(--b))}
+    button{font:inherit;color:inherit}
+    .ib{width:42px;height:42px;border:0;border-radius:12px;background:var(--al)}.back{background:0;font-size:26px;line-height:1}
+    .logo{text-align:center}.logo img{width:min(200px,58vw);border-radius:18px;border:1px solid #ffffff1a;background:#111}
+    .brand{text-align:center;font-size:24px;font-weight:900;letter-spacing:5px;margin:12px 0 4px}
+    .tag{text-align:center;color:var(--dm);font-size:13px;margin:0 0 10px}
+    .chips{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:12px 0 16px}
+    .chip{border:1px solid currentColor;border-radius:20px;padding:5px 10px;font-size:11px;font-weight:800}
+    .ok{color:var(--on);background:#3dcb6f22}.bad{color:var(--of);background:#e0a63d22}.md{color:var(--cr);background:#dc143c22}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .tile{background:var(--sf);border:1px solid #ffffff22;border-radius:14px;padding:14px 12px;min-height:100px;text-align:left}
+    .tile .e{font-size:22px;display:block;margin-bottom:6px}.tile h3{margin:0;font-size:15px}.tile p{margin:4px 0 0;font-size:11px;color:var(--dm)}
+    .card{background:var(--sf);border:1px solid #ffffff22;border-radius:14px;padding:14px;margin-bottom:12px}
+    .card h2{margin:0 0 8px;font-size:11px;letter-spacing:1.2px;color:var(--cr)}
+    .muted{color:var(--dm);font-size:12px;line-height:1.45}
+    label{display:block;font-size:12px;color:var(--dm);margin:10px 0 4px}
+    input,textarea{width:100%;background:var(--al);color:var(--wh);border:0;border-radius:12px;padding:12px;font:inherit;font-size:15px}
+    textarea{min-height:78px}
+    .btn{border:0;border-radius:12px;padding:13px;font-weight:700;background:var(--cr);color:#fff;width:100%}
+    .ghost{background:0;border:1px solid var(--cr)}.row{display:flex;gap:8px}
+    .eng{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;background:var(--sf);border:1px solid #ffffff22;border-radius:14px;padding:12px;margin-bottom:8px}
+    .eng.on{border-color:var(--cr);background:#dc143c22}
+    .eng h3{margin:0;font-size:14px}.eng p{margin:3px 0 0;font-size:11px;color:var(--dm)}
+    .dot{width:10px;height:10px;border-radius:50%;background:#555;margin-top:5px;flex-shrink:0}
+    .dot.live{background:var(--on)}.dot.cloud{background:#4ea1ff}.dot.err{background:var(--cr)}
+    .log{display:flex;flex-direction:column;gap:10px}
+    .bub{max-width:88%;padding:12px;border-radius:14px;font-size:14.5px;line-height:1.4;white-space:pre-wrap;word-break:break-word}
+    .me{align-self:flex-end;background:var(--dk);border-bottom-right-radius:4px}
+    .ai{align-self:flex-start;background:var(--sf);border:1px solid #ffffff22;border-bottom-left-radius:4px}
+    .bub img{width:100%;border-radius:10px;margin-bottom:6px;background:#111}
+    .meta{display:block;margin-top:6px;font-size:10px;color:var(--dm)}
+    .comp{display:flex;gap:8px;align-items:flex-end;padding:8px 10px calc(10px + var(--b))}
+    .comp textarea{min-height:44px;max-height:110px}
+    .rd{width:44px;height:44px;flex-shrink:0;border:0;border-radius:12px;background:var(--cr);color:#fff;font-size:20px}
+    .alt{background:var(--al);color:var(--dm)}
+    .item{background:var(--sf);border:1px solid #ffffff22;border-radius:14px;padding:12px;margin-bottom:8px;width:100%;text-align:left}
+    .item h3{margin:0;font-size:14px}.item p{margin:3px 0 0;font-size:12px;color:var(--dm);white-space:pre-wrap}
+    #toast{position:fixed;left:16px;right:16px;bottom:calc(18px + var(--b));background:#1a1a22;border:1px solid var(--cr);padding:12px;border-radius:12px;font-size:13px;display:none;z-index:50}
+    #toast.show{display:block}
+    #modal{position:fixed;inset:0;background:#0009;display:none;align-items:flex-end;z-index:60}
+    #modal.show{display:flex}#modal .box{background:var(--sf);width:100%;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + var(--b))}
+    .busy{display:none;align-items:center;gap:10px;padding:6px 16px;color:var(--dm);font-size:12px}.busy.show{display:flex}
+    .spin{width:14px;height:14px;border:2px solid #ffffff33;border-top-color:var(--cr);border-radius:50%;animation:r .8s linear infinite}
+    @keyframes r{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="flag"><i class="w"></i><i class="c"></i></div>
+
+  <section id="home" class="sc on">
+    <div class="sv">
+      <div class="logo"><img src="crest.jpg" alt="Herb" /></div>
+      <div class="brand">CZARNE WILKI</div>
+      <p class="tag">silniki: lokalny + chmura — przełączasz świadomie</p>
+      <div class="flag" style="border-radius:2px;margin:0 24px"><i class="w"></i><i class="c"></i></div>
+      <div class="chips">
+        <span id="chip-mode" class="chip ok">LOKALNY</span>
+        <span id="chip-eng" class="chip md">WILK</span>
+        <span id="chip-net" class="chip ok">MOST HTTP</span>
+      </div>
+      <div class="grid">
+        <button type="button" class="tile" data-go="chat"><span class="e">💬</span><h3>Czat</h3><p>aktywny silnik</p></button>
+        <button type="button" class="tile" data-go="engines"><span class="e">🧠</span><h3>Silniki</h3><p>lokalny / sieć</p></button>
+        <button type="button" class="tile" data-go="tasks"><span class="e">✅</span><h3>Zadania</h3><p>5 gotowych</p></button>
+        <button type="button" class="tile" data-go="voices"><span class="e">🎙️</span><h3>Głosy</h3><p>TTS</p></button>
+        <button type="button" class="tile" data-go="agent"><span class="e">🐺</span><h3>Agent</h3><p>profil</p></button>
+        <button type="button" class="tile" data-go="auto"><span class="e">⚙️</span><h3>Automatyzacja</h3><p>checklista</p></button>
+        <button type="button" class="tile" data-go="settings"><span class="e">🔧</span><h3>Ustawienia</h3><p>kopia</p></button>
+        <button type="button" class="tile" data-go="diag"><span class="e">🩺</span><h3>Diagnostyka</h3><p>test + naprawa</p></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="chat" class="sc">
+    <div class="bar">
+      <button type="button" class="ib back" data-go="home">‹</button>
+      <h1>Czat<span class="sub" id="chat-sub">Wilk · lokalny</span></h1>
+      <button type="button" class="ib" id="btn-new">＋</button>
+    </div>
+    <div class="flag"><i class="w"></i><i class="c"></i></div>
+    <div id="chat-log" class="sv log"></div>
+    <div id="chat-busy" class="busy"><div class="spin"></div><span id="busy-txt">Myślę…</span></div>
+    <div class="comp">
+      <button type="button" class="rd alt" id="btn-img">🖼</button>
+      <textarea id="chat-input" rows="1" placeholder="Pisz…"></textarea>
+      <button type="button" class="rd alt" id="btn-mic">🎤</button>
+      <button type="button" class="rd" id="btn-send">↑</button>
+    </div>
+  </section>
+
+  <section id="engines" class="sc">
+    <div class="bar">
+      <button type="button" class="ib back" data-go="home">‹</button>
+      <h1>Silniki</h1>
+    </div>
+    <div class="flag"><i class="w"></i><i class="c"></i></div>
+    <div class="sv">
+      <div class="card">
+        <h2>TRYB</h2>
+        <p class="muted" id="eng-hint">Wybierz silnik. Sieciowy nigdy nie udaje lokalnego.</p>
+      </div>
+      <div id="eng-list"></div>
+      <div class="card">
+        <h2>KLUCZ AKTYWNEGO SILNIKA SIECIOWEGO</h2>
+        <label>Klucz API</label>
+        <input id="eng-key" type="password" placeholder="wklej klucz tego silnika" autocomplete="off" />
+        <label>Model id</label>
+        <input id="eng-model" />
+        <div class="row" style="margin-top:10px">
+          <button type="button" class="btn" id="btn-save-eng">Zapisz klucz</button>
+          <button type="button" class="btn ghost" id="btn-test-eng">Test połączenia</button>
+        </div>
+        <p class="muted" id="eng-test" style="margin-top:10px">Nie testowano.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="tasks" class="sc">
+    <div class="bar"><button type="button" class="ib back" data-go="home">‹</button><h1>Zadania</h1></div>
+    <div class="flag"><i class="w"></i><i class="c"></i></div>
+    <div class="sv">
+      <div class="card"><h2>GOTOWCE</h2><p class="muted">Idą przez aktywny silnik (lokalny albo sieć).</p></div>
+      <div id="task-presets"></div>
+      <label>Własne</label>
+      <textarea id="task-goal" placeholder="Cel zadania…"></textarea>
+      <div style="height:8px"></div>
+      <button type="button" class="btn" id="btn-run-task">Uruchom</button>
+      <div id="task-out" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <section id="voices" class="sc">
+    <div class="bar"><button type="button" class="ib back" data-go="home">‹</button><h1>Głosy</h1></div>
+    <div class="flag"><i class="w"></i><i class="c"></i></div>
+    <div class="sv">
+      <div class="card">
+        <label>Tempo <span id="rate-val">1.00</span></label>
+        <input type="range" id="tts-rate" min="0.5" max="1.6" step="0.05" value="1" />
+        <label>Wysokość <span id="pitch-val">1.00</span></label>
+        <input type="range" id="tts-pitch" min="0.5" max="1.8" step="0.05" value="1" />
+      </div>
+      <div id="voice-list"></div>
+    </div>
+  </section>
+
+  <section id="agent" class="sc">
+    <div class="bar"><button type="button" class="ib back" data-go="home">‹</button><h1>Agent</h1></div>
+    <div class="flag"><i class="w"></i><i class="c"></i></div>
+    <div class="sv">
+      <div class="card">
+        <label>Imię</label><input id="ag-name" />
+        <label>Rola</label><input id="ag-role" />
+        <label>System</label><textarea id="ag-sys"></textarea>
+        <label>Temperatura <span id="temp-val">0.70</span></label>
+        <input type="range" id="ag-temp" min="0" max="1.5" step="0.05" value="0.7" />
+        <div style="height:10px"></div>
+        <button type="button" class="btn" id="btn-save-agent">Zapisz</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="auto" class="sc">
+    <div class="bar"><button type="button" class="ib back" data-go="home">‹</button><h1>Automatyzacja</h1></div>
+    <div class="flag"><i class="w"></i><i class="c"></i></div>
+    <div class="sv">
+      <div class="item"><h3>1. Ustawienia ograniczone</h3><p>Aplikacje → Czarne Wilki → ⋮ → Zezwól na ustawienia ograniczone</p></div>
+      <div class="item"><h3>2. Dostępność</h3><p>Dostępność → Czarne Wilki — Sterowanie Ekranem</p></div>
+      <div class="item"><h3>3. Polityka</h3><p>Tylko Twoje urządzenie. Bez udawania człowieka wobec osób trzecich.</p></div>
+    </div>
+  </section>
+
+  <section id="settings" class="sc">
+    <div class="bar"><button type="button" class="ib back" data-go="home">‹</button><h1>Ustawienia</h1></div>
+    <div class="flag"><i class="w"></i><i class="c"></i></div>
+    <div class="sv">
+      <div class="card"><h2>KOPIA</h2>
+        <div class="row">
+          <button type="button" class="btn" id="btn-export">Eksport</button>
+          <button type="button" class="btn ghost" id="btn-import">Import</button>
+        </div>
+        <input type="file" id="import-file" accept="application/json,text/plain" hidden />
+      </div>
+      <div class="card"><h2>MOST NATYWNY</h2><p class="muted" id="bridge-hint">Sprawdzam CwNative…</p></div>
+      <div class="card"><strong>CZARNE WILKI · v0.6.0</strong><p class="muted">Wilk · OpenRouter · OpenAI · Anthropic · Gemini · Kimi · DeepSeek</p></div>
+    </div>
+  </section>
+
+  <section id="diag" class="sc">
+    <div class="bar"><button type="button" class="ib back" data-go="home">‹</button><h1>Diagnostyka</h1></div>
+    <div class="flag"><i class="w"></i><i class="c"></i></div>
+    <div class="sv">
+      <div class="card">
+        <h2>TEST</h2>
+        <p class="muted" id="diag-status">—</p>
+        <div class="row" style="margin-top:10px">
+          <button type="button" class="btn" id="btn-diag">Testuj</button>
+          <button type="button" class="btn ghost" id="btn-heal">Napraw</button>
+        </div>
+      </div>
+      <div id="diag-list"></div>
+      <div class="card"><h2>DZIENNIK</h2><p class="muted" id="diag-log" style="max-height:240px;overflow:auto;white-space:pre-wrap">—</p></div>
+    </div>
+  </section>
+</div>
+<div id="toast"></div>
+<div id="modal"><div class="box">
+  <h2 style="margin:0 0 8px;font-size:16px" id="modal-title">Obraz</h2>
+  <textarea id="modal-input" placeholder="Opisz obraz…"></textarea>
+  <div class="row" style="margin-top:10px">
+    <button type="button" class="btn ghost" id="modal-cancel">Anuluj</button>
+    <button type="button" class="btn" id="modal-ok">Generuj</button>
+  </div>
+</div></div>
+<script>
+(function(){
+  var LIVE=[];
+  var SCREENS=["home","chat","engines","tasks","voices","agent","auto","settings","diag"];
+  var ENGINES=[
+    {id:"local", name:"Wilk", kind:"local", blurb:"Wbudowany, offline. Zawsze działa.", model:""},
+    {id:"openrouter", name:"OpenRouter", kind:"openai", blurb:"Chmura · darmowe modele.", base:"https://openrouter.ai/api/v1", model:"openai/gpt-oss-120b:free"},
+    {id:"openai", name:"OpenAI", kind:"openai", blurb:"Chmura · /v1/chat/completions", base:"https://api.openai.com/v1", model:"gpt-4o-mini"},
+    {id:"anthropic", name:"Anthropic", kind:"anthropic", blurb:"Chmura · Messages API", base:"https://api.anthropic.com/v1", model:"claude-sonnet-4-5"},
+    {id:"gemini", name:"Gemini", kind:"gemini", blurb:"Chmura · generateContent", base:"https://generativelanguage.googleapis.com/v1beta", model:"gemini-2.0-flash"},
+    {id:"kimi", name:"Kimi", kind:"openai", blurb:"Chmura · Moonshot, OpenAI-compat", base:"https://api.moonshot.ai/v1", model:"kimi-k2.5"},
+    {id:"deepseek", name:"DeepSeek", kind:"openai", blurb:"Chmura · OpenAI-compat", base:"https://api.deepseek.com/v1", model:"deepseek-chat"}
+  ];
+  var TASKS=[
+    {title:"Plan dnia", seed:"Ułóż plan dnia od 7:00 do 22:00."},
+    {title:"Szkic maila", seed:"Napisz krótki mail z prośbą o przesunięcie spotkania o dzień."},
+    {title:"Streszczenie", seed:"Streszcz dotychczasową rozmowę w 5 punktach."},
+    {title:"Lista zakupów", seed:"Lista zakupów na 3 dni, prosto i tanio."},
+    {title:"Trening 20 min", seed:"Trening 20 minut bez sprzętu."}
+  ];
+  function $(id){return document.getElementById(id)}
+  function log(m){LIVE.push(new Date().toISOString().slice(11,19)+"  "+m); if(LIVE.length>100)LIVE=LIVE.slice(-100); var e=$("diag-log"); if(e)e.textContent=LIVE.join("\n")}
+  function toast(m){var t=$("toast"); if(!t)return; t.textContent=String(m||""); t.className="show"; clearTimeout(toast.tm); toast.tm=setTimeout(function(){t.className=""},4500); log("toast: "+m)}
+  function hasNative(){try{return !!(window.CwNative && typeof window.CwNative.http==="function")}catch(e){return false}}
+  function storeGet(){try{return localStorage.getItem("cw.v6")}catch(e){return null}}
+  function storeSet(v){try{localStorage.setItem("cw.v6",v);return true}catch(e){return false}}
+
+  var defAgent={name:"Wilk", role:"Wierny asystent właściciela", system:"Odpowiadasz po polsku, krótko i konkretnie.", temperature:0.7};
+  var state={engine:"local", keys:{}, models:{}, agent:defAgent, voice:{name:null,rate:1,pitch:1}, messages:[{role:"assistant",content:"Silnik: Wilk (lokalny). Przełącz na sieć w Silnikach — po teście połączenia czat idzie tylko tam.",model:"Wilk"}], taskLog:[], lastTest:{}};
+  try{
+    var raw=storeGet(); if(raw){var p=JSON.parse(raw);
+      if(p.engine)state.engine=p.engine; if(p.keys)state.keys=p.keys; if(p.models)state.models=p.models;
+      if(p.agent)state.agent={name:p.agent.name||defAgent.name,role:p.agent.role||defAgent.role,system:p.agent.system||defAgent.system,temperature:+p.agent.temperature||0.7};
+      if(p.voice)state.voice=p.voice; if(p.messages&&p.messages.length)state.messages=p.messages; if(p.taskLog)state.taskLog=p.taskLog;
+    }
+  }catch(e){}
+
+  function eng(){var i; for(i=0;i<ENGINES.length;i++) if(ENGINES[i].id===state.engine) return ENGINES[i]; return ENGINES[0]}
+  function save(){try{storeSet(JSON.stringify({engine:state.engine,keys:state.keys,models:state.models,agent:state.agent,voice:state.voice,messages:state.messages,taskLog:state.taskLog}))}catch(e){} paint()}
+  function paint(){
+    var e=eng();
+    var cloud=e.kind!=="local";
+    if($("chip-mode")){$("chip-mode").textContent=cloud?"SIECIOWY":"LOKALNY"; $("chip-mode").className="chip "+(cloud?"bad":"ok")}
+    if($("chip-eng")) $("chip-eng").textContent=e.name.toUpperCase();
+    if($("chip-net")){$("chip-net").textContent=hasNative()?"MOST HTTP OK":"BRAK MOSTU"; $("chip-net").className="chip "+(hasNative()?"ok":"bad")}
+    if($("chat-sub")) $("chat-sub").textContent=e.name+" · "+(cloud?"sieć":"lokalny");
+    if($("bridge-hint")) $("bridge-hint").textContent=hasNative()?"CwNative.http działa — chmura idzie poza CORS WebView.":"Brak mostu natywnego. Zainstaluj APK v0.6 (nie stary pakiet).";
+    if($("eng-hint")) $("eng-hint").textContent=cloud?("Aktywny: "+e.name+" — czat NIE spadnie na Wilka przy błędzie sieci."):"Aktywny: Wilk lokalny.";
+  }
+
+  function go(id){
+    var all=document.querySelectorAll("section.sc"),i,ok=false;
+    for(i=0;i<all.length;i++){if(all[i].id===id){all[i].className="sc on";ok=true}else all[i].className="sc"}
+    if(!ok){$("home").className="sc on"; toast("Brak ekranu "+id); return}
+    if(id==="chat") drawChat();
+    if(id==="engines") drawEngines();
+    if(id==="tasks") drawTasks();
+    if(id==="voices") drawVoices();
+    if(id==="agent") fillAgent();
+    if(id==="diag") drawDiag();
+    log("ekran "+id);
+  }
+
+  function localReply(text){
+    var t=String(text||"").toLowerCase(); var a=state.agent.name||"Wilk";
+    if(/cześć|hej|witaj|dzień|dzien/.test(t)) return "Cześć. Jestem "+a+" (silnik lokalny). Do chmury: Silniki → wybierz OpenRouter/OpenAI/… → klucz → Test połączenia.";
+    if(/plan/.test(t)) return "Plan dnia:\n07:00 pobudka\n08:00 śniadanie\n09:00–13:00 praca\n13:00 obiad\n14:00–17:00 praca\n18:00 ruch\n19:30 kolacja\n22:00 sen";
+    if(/mail|e-mail|wiadom/.test(t)) return "Temat: Przesunięcie spotkania\n\nDzień dobry,\nproszę o przesunięcie spotkania o jeden dzień. Proponuję ten sam slot jutro.\n\nPozdrawiam\n"+a;
+    if(/zakup|lista/.test(t)) return "Zakupy:\n• chleb, jajka, owsianka\n• mleko\n• ryż, makaron, kurczak/tofu\n• cebula, marchew, pomidory\n• owoce, woda";
+    if(/trening|ćwic|cwicz/.test(t)) return "20 min:\n2 min rozgrzewka\n4×40s/20s: przysiad, pompka, deska, wykrok\n2 min rozciąganie";
+    if(/streszcz|podsum|punkt/.test(t)) return "Streszczenie:\n• Silnik: "+eng().name+"\n• Wiadomości: "+state.messages.length+"\n• Most HTTP: "+(hasNative()?"tak":"nie");
+    return a+" (lokalny) odebrał: „"+String(text).slice(0,200)+"”\n\nTo nie jest GGUF/llama.cpp. Pełny model: przełącz silnik sieciowy i wklej klucz.";
+  }
+
+  function nativeHttp(method,url,headers,body){
+    if(!hasNative()) return Promise.reject(new Error("brak mostu CwNative — zła wersja APK"));
+    return new Promise(function(resolve,reject){
+      try{
+        var raw=window.CwNative.http(method,url,JSON.stringify(headers||{}),body||"");
+        var j=JSON.parse(raw);
+        if(!j || j.code===0) return reject(new Error(j&&j.error?j.error:"native http fail"));
+        resolve(j);
+      }catch(e){reject(e)}
+    });
+  }
+
+  function buildCloud(userTurns){
+    var e=eng();
+    var sys=(state.agent.name?"Nazywasz się "+state.agent.name+". ":"")+(state.agent.role?"Rola: "+state.agent.role+". ":"")+(state.agent.system||"");
+    var model=state.models[e.id]||e.model;
+    var key=state.keys[e.id]||"";
+    if(e.kind==="anthropic"){
+      return {url:e.base+"/messages", headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01"},
+        body:JSON.stringify({model:model,max_tokens:1024,temperature:state.agent.temperature,stream:false,system:sys,messages:userTurns})};
+    }
+    if(e.kind==="gemini"){
+      var contents=[]; var i;
+      for(i=0;i<userTurns.length;i++) contents.push({role:userTurns[i].role==="assistant"?"model":"user",parts:[{text:userTurns[i].content}]});
+      return {url:e.base+"/models/"+model+":generateContent?key="+encodeURIComponent(key),
+        headers:{"content-type":"application/json"},
+        body:JSON.stringify({system_instruction:{parts:[{text:sys}]},contents:contents,generationConfig:{temperature:state.agent.temperature,maxOutputTokens:1024}})};
+    }
+    var headers={"content-type":"application/json","authorization":"Bearer "+key};
+    if(e.id==="openrouter"){headers["HTTP-Referer"]="https://czarne-wilki.app"; headers["X-Title"]="Czarne Wilki"}
+    var msgs=[{role:"system",content:sys}];
+    for(i=0;i<userTurns.length;i++) msgs.push(userTurns[i]);
+    return {url:e.base+"/chat/completions", headers:headers,
+      body:JSON.stringify({model:model,stream:false,temperature:state.agent.temperature,max_tokens:1024,messages:msgs})};
+  }
+
+  function parseCloud(kind, body){
+    var j; try{j=JSON.parse(body)}catch(e){return ""}
+    try{
+      if(kind==="anthropic"){var t="",b=j.content||[],i; for(i=0;i<b.length;i++) if(b[i].text)t+=b[i].text; return t}
+      if(kind==="gemini") return j.candidates[0].content.parts[0].text||"";
+      return j.choices[0].message.content||"";
+    }catch(e){return ""}
+  }
+
+  function drawChat(){
+    var log=$("chat-log"); if(!log)return; log.innerHTML="";
+    var i; for(i=0;i<state.messages.length;i++){
+      var m=state.messages[i], el=document.createElement("div");
+      el.className="bub "+(m.role==="user"?"me":"ai");
+      if(m.image){var im=document.createElement("img"); im.src=m.image; im.alt="obraz"; el.appendChild(im)}
+      if(m.content) el.appendChild(document.createTextNode(m.content));
+      if(m.model){var s=document.createElement("span"); s.className="meta"; s.textContent=m.model; el.appendChild(s)}
+      log.appendChild(el);
+    }
+    log.scrollTop=log.scrollHeight;
+  }
+
+  function setBusy(on,txt){if($("chat-busy"))$("chat-busy").className=on?"busy show":"busy"; if(txt&&$("busy-txt"))$("busy-txt").textContent=txt}
+
+  function sendText(text){
+    var e=eng();
+    state.messages.push({role:"user",content:text}); save(); drawChat();
+    if(e.kind==="local"){
+      var r=localReply(text);
+      state.messages.push({role:"assistant",content:r,model:"Wilk · lokalny"}); save(); drawChat(); return;
+    }
+    var key=state.keys[e.id]||"";
+    if(!key){var msg="Silnik "+e.name+" jest wybrany, ale nie ma klucza. Wklej klucz w Silnikach albo wróć na Wilka."; state.messages.push({role:"assistant",content:msg,model:"system"}); save(); drawChat(); toast(msg); return}
+    setBusy(true,"Łączę z "+e.name+"…");
+    var turns=[],i;
+    for(i=0;i<state.messages.length;i++){var m=state.messages[i]; if(m.content&&(m.role==="user"||m.role==="assistant")) turns.push({role:m.role,content:m.content})}
+    var req=buildCloud(turns);
+    nativeHttp("POST", req.url, req.headers, req.body).then(function(res){
+      setBusy(false);
+      if(res.code<200||res.code>=300){
+        var err="Sieć "+e.name+" HTTP "+res.code+"\n"+String(res.body||"").slice(0,280);
+        state.messages.push({role:"assistant",content:err,model:e.name+" · BŁĄD"}); save(); drawChat(); toast(e.name+" nie połączył się ("+res.code+")"); return;
+      }
+      var txt=parseCloud(e.kind,res.body);
+      if(!txt){state.messages.push({role:"assistant",content:"Pusta odpowiedź z "+e.name+". Body: "+String(res.body||"").slice(0,200),model:e.name+" · pusto"}); save(); drawChat(); return}
+      state.messages.push({role:"assistant",content:txt,model:e.name+" · sieć"}); save(); drawChat();
+    }).catch(function(err){
+      setBusy(false);
+      var em="Nie połączono z "+e.name+": "+(err&&err.message?err.message:err)+"\nMost: "+(hasNative()?"jest":"BRAK");
+      state.messages.push({role:"assistant",content:em,model:e.name+" · BŁĄD"}); save(); drawChat(); toast("Brak połączenia z "+e.name);
+    });
+  }
+
+  function testEngine(){
+    var e=eng();
+    if(e.kind==="local"){$("eng-test").textContent="Wilk lokalny — test OK (bez sieci)."; toast("Lokalny działa"); return}
+    var key=state.keys[e.id]||$("eng-key").value.replace(/^\s+|\s+$/g,"");
+    if(!key){$("eng-test").textContent="Brak klucza."; toast("Wklej klucz"); return}
+    state.keys[e.id]=key; save();
+    $("eng-test").textContent="Testuję "+e.name+" przez most natywny…";
+    var url, headers={"accept":"application/json"}, method="GET", body="";
+    if(e.kind==="openai"){url=e.base+"/models"; headers.authorization="Bearer "+key}
+    else if(e.kind==="anthropic"){url=e.base+"/models"; headers["x-api-key"]=key; headers["anthropic-version"]="2023-06-01"}
+    else {url=e.base+"/models?key="+encodeURIComponent(key)}
+    nativeHttp(method,url,headers,body).then(function(res){
+      var ok=res.code>=200&&res.code<400;
+      $("eng-test").textContent=(ok?"POŁĄCZONO ":"BŁĄD ")+e.name+" HTTP "+res.code+" · "+String(res.body||res.error||"").slice(0,160);
+      toast(ok?e.name+" działa":e.name+" HTTP "+res.code);
+      log("test "+e.id+" "+res.code);
+    }).catch(function(err){
+      $("eng-test").textContent="BRAK ŁĄCZNOŚCI: "+(err&&err.message?err.message:err)+" · most="+(hasNative()?"tak":"NIE");
+      toast("Test sieci nie przeszedł");
+    });
+  }
+
+  function drawEngines(){
+    var box=$("eng-list"); if(!box)return; box.innerHTML="";
+    var i; for(i=0;i<ENGINES.length;i++){
+      (function(en){
+        var b=document.createElement("button"); b.type="button"; b.className="eng"+(state.engine===en.id?" on":"");
+        var st=en.kind==="local"?"live":(state.keys[en.id]?"cloud":"");
+        b.innerHTML='<span class="dot '+st+'"></span><div><h3>'+en.name+"</h3><p>"+en.blurb+(en.kind!=="local"?(state.keys[en.id]?" · klucz zapisany":" · brak klucza"):"")+"</p></div>";
+        b.onclick=function(){ state.engine=en.id; save(); drawEngines(); fillEngForm(); paint(); toast("Silnik: "+en.name); };
+        box.appendChild(b);
+      })(ENGINES[i]);
+    }
+    fillEngForm();
+  }
+  function fillEngForm(){
+    var e=eng();
+    if($("eng-key")) $("eng-key").value=state.keys[e.id]||"";
+    if($("eng-model")) $("eng-model").value=state.models[e.id]||e.model||"";
+    if($("eng-key")) $("eng-key").disabled=e.kind==="local";
+    if($("eng-model")) $("eng-model").disabled=e.kind==="local";
+  }
+
+  function drawTasks(){
+    var box=$("task-presets"); if(box){box.innerHTML=""; var i; for(i=0;i<TASKS.length;i++){(function(t){var b=document.createElement("button"); b.type="button"; b.className="item"; b.innerHTML="<h3>"+t.title+"</h3>"; b.onclick=function(){runTask(t.seed,t.title)}; box.appendChild(b)})(TASKS[i])}}
+    var out=$("task-out"); if(!out)return; out.innerHTML="";
+    if(!state.taskLog.length){out.innerHTML='<div class="card"><p class="muted">Wybierz zadanie — wynik tu.</p></div>'; return}
+    var j; for(j=state.taskLog.length-1;j>=0;j--){var r=state.taskLog[j]; var d=document.createElement("div"); d.className="item"; d.innerHTML="<h3>"+esc(r.title)+"</h3><p>"+esc(r.result)+"</p>"; out.appendChild(d)}
+  }
+  function runTask(goal,title){
+    var g=String(goal||"").replace(/^\s+|\s+$/g,""); if(!g){toast("Wpisz cel"); return}
+    var e=eng();
+    if(e.kind==="local"){var res=localReply(g); state.taskLog.push({title:title||"Zadanie",result:res}); save(); drawTasks(); toast("Zrobione lokalnie"); return}
+    go("chat"); sendText("ZADANIE: "+g);
+  }
+
+  function fillAgent(){if($("ag-name"))$("ag-name").value=state.agent.name; if($("ag-role"))$("ag-role").value=state.agent.role; if($("ag-sys"))$("ag-sys").value=state.agent.system; if($("ag-temp"))$("ag-temp").value=state.agent.temperature; if($("temp-val"))$("temp-val").textContent=Number(state.agent.temperature).toFixed(2)}
+  function drawVoices(){
+    var box=$("voice-list"); if(!box)return;
+    if(!(window.speechSynthesis)){box.innerHTML='<div class="card"><p class="muted">Brak TTS. Czat działa.</p></div>'; return}
+    var vs=[]; try{vs=speechSynthesis.getVoices()||[]}catch(e){vs=[]}
+    box.innerHTML=""; if(!vs.length){box.innerHTML='<div class="card"><p class="muted">Brak głosów systemowych.</p></div>'; return}
+    var i; for(i=0;i<vs.length;i++){(function(v){var b=document.createElement("button"); b.type="button"; b.className="item"; b.innerHTML="<h3>"+esc(v.name)+"</h3><p>"+esc(v.lang)+"</p>"; b.onclick=function(){state.voice.name=v.name; save(); try{var u=new SpeechSynthesisUtterance("Czarne Wilki. "+v.name); u.voice=v; speechSynthesis.speak(u)}catch(e){}}; box.appendChild(b)})(vs[i])}
+  }
+  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+
+  function diagnose(){
+    var iss=[],i;
+    for(i=0;i<SCREENS.length;i++) if(!$(SCREENS[i])) iss.push("brak #"+SCREENS[i]);
+    ["btn-send","btn-run-task","eng-list","chat-log"].forEach(function(id){if(!$(id))iss.push("brak #"+id)});
+    if(!localReply("cześć")||localReply("cześć").length<8) iss.push("silnik lokalny pusty");
+    if(eng().kind!=="local" && !(state.keys[eng().id])) iss.push("silnik sieciowy bez klucza");
+    if(eng().kind!=="local" && !hasNative()) iss.push("brak mostu HTTP — chmura nie przejdzie");
+    return iss;
+  }
+  function heal(){
+    var n=0;
+    if(!state.agent){state.agent=defAgent;n++} if(!state.keys){state.keys={};n++} if(!state.messages){state.messages=[];n++}
+    if(!state.engine){state.engine="local";n++}
+    try{bind();n++}catch(e){log("rebind "+e.message)}
+    save(); toast("Naprawa: "+n); return diagnose();
+  }
+  function drawDiag(){
+    var iss=diagnose();
+    if($("diag-status")) $("diag-status").textContent=iss.length?("Błędy: "+iss.length):"Czysto.";
+    var list=$("diag-list"); if(!list)return; list.innerHTML="";
+    if(!iss.length) list.innerHTML='<div class="item"><h3>OK</h3><p>Ekrany, silniki, most.</p></div>';
+    else iss.forEach(function(x){var d=document.createElement("div"); d.className="item"; d.innerHTML="<h3>Błąd</h3><p>"+esc(x)+"</p>"; list.appendChild(d)});
+    if($("diag-log")) $("diag-log").textContent=LIVE.join("\n")||"—";
+  }
+
+  var bound=false;
+  function bind(){
+    if(!bound && $("app")){
+      $("app").addEventListener("click",function(ev){var t=ev.target; while(t&&t!==this){if(t.getAttribute&&t.getAttribute("data-go")){go(t.getAttribute("data-go"));return} t=t.parentNode}});
+      bound=true;
+    }
+    if($("btn-send")) $("btn-send").onclick=function(){var t=($("chat-input").value||"").replace(/^\s+|\s+$/g,""); if(!t)return; $("chat-input").value=""; sendText(t)};
+    if($("chat-input")) $("chat-input").onkeydown=function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("btn-send").click()}};
+    if($("btn-new")) $("btn-new").onclick=function(){state.messages=[{role:"assistant",content:"Nowa rozmowa. Silnik: "+eng().name,model:eng().name}]; save(); drawChat()};
+    if($("btn-mic")) $("btn-mic").onclick=function(){var SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR){toast("Brak STT");return} var r=new SR(); r.lang="pl-PL"; r.onresult=function(ev){$("chat-input").value=ev.results[0][0].transcript}; try{r.start()}catch(e){toast("Mikrofon")}};
+    if($("btn-img")) $("btn-img").onclick=function(){$("modal-title").textContent="Obraz (Pollinations)"; $("modal-input").value=""; $("modal-ok").textContent="Generuj"; $("modal").className="show"; $("modal-ok").onclick=function(){var p=($("modal-input").value||"").replace(/^\s+|\s+$/g,""); $("modal").className=""; if(!p)return; var src="https://image.pollinations.ai/prompt/"+encodeURIComponent(p)+"?width=768&height=768&nologo=true&seed="+(Date.now()%99999); state.messages.push({role:"user",content:p}); state.messages.push({role:"assistant",content:"Obraz (sieć, bez fetch/CORS):",image:src,model:"Pollinations"}); save(); go("chat"); drawChat()}};
+    if($("modal-cancel")) $("modal-cancel").onclick=function(){$("modal").className=""};
+    if($("btn-save-eng")) $("btn-save-eng").onclick=function(){var e=eng(); if(e.kind==="local"){toast("Wilk nie potrzebuje klucza");return} state.keys[e.id]=($("eng-key").value||"").replace(/^\s+|\s+$/g,""); state.models[e.id]=($("eng-model").value||e.model); save(); drawEngines(); toast("Zapisano klucz "+e.name)};
+    if($("btn-test-eng")) $("btn-test-eng").onclick=testEngine;
+    if($("btn-save-agent")) $("btn-save-agent").onclick=function(){state.agent.name=$("ag-name").value; state.agent.role=$("ag-role").value; state.agent.system=$("ag-sys").value; state.agent.temperature=Number($("ag-temp").value); save(); toast("Profil zapisany")};
+    if($("ag-temp")) $("ag-temp").oninput=function(){if($("temp-val"))$("temp-val").textContent=Number(this.value).toFixed(2)};
+    if($("tts-rate")) $("tts-rate").oninput=function(){state.voice.rate=Number(this.value); if($("rate-val"))$("rate-val").textContent=state.voice.rate.toFixed(2); save()};
+    if($("tts-pitch")) $("tts-pitch").oninput=function(){state.voice.pitch=Number(this.value); if($("pitch-val"))$("pitch-val").textContent=state.voice.pitch.toFixed(2); save()};
+    if($("btn-export")) $("btn-export").onclick=function(){var payload=JSON.stringify({format:"czarne-wilki-backup",version:2,engine:state.engine,keys:{},agent:state.agent,messages:state.messages},null,2); $("modal-title").textContent="Kopia (klucze wycięte)"; $("modal-input").value=payload; $("modal-ok").textContent="Zamknij"; $("modal").className="show"; $("modal-ok").onclick=function(){$("modal").className=""}};
+    if($("btn-import")) $("btn-import").onclick=function(){$("import-file").click()};
+    if($("import-file")) $("import-file").onchange=function(){if(!this.files[0])return; var fr=new FileReader(); fr.onload=function(){try{var d=JSON.parse(fr.result); if(d.agent)state.agent=d.agent; if(d.messages)state.messages=d.messages; save(); toast("Import OK")}catch(e){toast("Zły plik")}}; fr.readAsText(this.files[0])};
+    if($("btn-run-task")) $("btn-run-task").onclick=function(){runTask($("task-goal").value,"Własne")};
+    if($("btn-diag")) $("btn-diag").onclick=function(){drawDiag(); toast(diagnose().length?"Są błędy":"Czysto")};
+    if($("btn-heal")) $("btn-heal").onclick=function(){heal(); drawDiag()};
+    paint(); fillAgent();
+  }
+
+  window.onerror=function(msg,_,line){log("ERR "+msg+" @"+line); try{heal()}catch(e){} return true};
+  try{bind()}catch(e){log("boot "+e.message)}
+  try{var b=diagnose(); log(b.length?("boot issues "+b.length):"boot OK"); if(b.length)heal()}catch(e){}
+  setInterval(function(){try{var x=diagnose(); if(x.length){log("watchdog "+x.length); heal()}}catch(e){}},5000);
+})();
+</script>
+</body>
+</html>

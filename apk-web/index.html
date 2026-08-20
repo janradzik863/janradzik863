@@ -103,6 +103,7 @@
         <button type="button" class="tile" data-go="agent"><span class="e">🐺</span><h3>Agent</h3><p>imię i charakter</p></button>
         <button type="button" class="tile" data-go="auto"><span class="e">⚙️</span><h3>Automatyzacja</h3><p>sterowanie ekranem</p></button>
         <button type="button" class="tile" data-go="settings"><span class="e">🔧</span><h3>Ustawienia</h3><p>tryb i kopia</p></button>
+        <button type="button" class="tile" data-go="diag"><span class="e">🩺</span><h3>Diagnostyka</h3><p>test + samonaprawa</p></button>
       </div>
       <div class="card" style="margin-top:16px">
         <p class="muted">Działa od razu — silnik lokalny <b>Wilk</b> odpowiada bez internetu. Chmurę (OpenRouter / OpenAI / Claude / Gemini / Kimi) włączysz w Modelach po wklejeniu klucza.</p>
@@ -273,8 +274,31 @@
         <p class="muted">Historia lokalnie. Klucz API tylko do wybranego dostawcy. Offline = brak sieci.</p>
       </div>
       <div class="card">
-        <strong>CZARNE WILKI · v0.4.0</strong>
+        <strong>CZARNE WILKI · v0.5.0</strong>
         <p class="muted">Wilk lokalny + OpenAI · Anthropic · Gemini · Kimi · OpenRouter<br>WOJAN · Wszyscy wolni obywatele niepodległej.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="diag" class="screen">
+    <div class="bar">
+      <button type="button" class="ib back" data-go="home">‹</button>
+      <h1>Diagnostyka</h1>
+    </div>
+    <div class="flag"><b class="w"></b><b class="c"></b></div>
+    <div class="sc">
+      <div class="card">
+        <h2>TEST W LOCIE</h2>
+        <p class="muted" id="diag-status">Oczekiwanie…</p>
+        <div class="row" style="margin-top:10px">
+          <button type="button" class="btn" id="btn-diag">Uruchom testy</button>
+          <button type="button" class="btn ghost" id="btn-heal">Napraw teraz</button>
+        </div>
+      </div>
+      <div id="diag-list"></div>
+      <div class="card">
+        <h2>DZIENNIK NA ŻYWO</h2>
+        <p class="muted" id="diag-log" style="max-height:220px;overflow:auto;white-space:pre-wrap">—</p>
       </div>
     </div>
   </section>
@@ -292,7 +316,18 @@
 
 <script>
 (function () {
+  var LIVE = [];
+  var REQUIRED_SCREENS = ["home","chat","models","voices","tasks","agent","auto","settings","diag"];
+  var REQUIRED_IDS = ["btn-send","btn-new","btn-mic","btn-img","btn-save-model","btn-save-agent","btn-run-task","btn-export","btn-import","btn-diag","btn-heal","task-goal","task-out","task-presets","chat-log","chat-input","model-list","voice-list","tier-hint","toast","modal","chip-net","chip-model","ag-name","ag-role","ag-sys","diag-list","diag-log","diag-status"];
+
   function $(id) { return document.getElementById(id); }
+  function logLive(msg) {
+    var line = new Date().toISOString().slice(11, 19) + "  " + msg;
+    LIVE.push(line);
+    if (LIVE.length > 80) LIVE = LIVE.slice(-80);
+    var el = $("diag-log");
+    if (el) el.textContent = LIVE.join("\n");
+  }
   function toast(msg) {
     var t = $("toast");
     if (!t) return;
@@ -384,6 +419,8 @@
     if (id === "voices") drawVoices();
     if (id === "agent") fillAgent();
     if (id === "tasks") drawTasks();
+    if (id === "diag") drawDiag();
+    logLive("ekran: " + id);
   }
   function paint() {
     var m = activeModel();
@@ -788,14 +825,123 @@
     reader.readAsText(file);
   }
 
+  function diagnose() {
+    var issues = [];
+    var i;
+    for (i = 0; i < REQUIRED_SCREENS.length; i++) {
+      if (!$("" + REQUIRED_SCREENS[i])) issues.push("brak ekranu #" + REQUIRED_SCREENS[i]);
+    }
+    for (i = 0; i < REQUIRED_IDS.length; i++) {
+      if (!$(REQUIRED_IDS[i])) issues.push("brak elementu #" + REQUIRED_IDS[i]);
+    }
+    var gos = document.querySelectorAll("[data-go]");
+    for (i = 0; i < gos.length; i++) {
+      var g = gos[i].getAttribute("data-go");
+      if (g && !$(g)) issues.push("kafelek prowadzi do braku #" + g);
+    }
+    try {
+      var probe = localReply("cześć");
+      if (!probe || probe.length < 8) issues.push("silnik lokalny zwraca pusto");
+    } catch (e) {
+      issues.push("silnik lokalny: " + e.message);
+    }
+    if (!TASKS || TASKS.length < 5) issues.push("katalog zadań niepełny");
+    if (!state || !state.agent || !state.messages) issues.push("uszkodzony stan");
+    try {
+      window.localStorage.setItem("cw.probe", "1");
+      if (window.localStorage.getItem("cw.probe") !== "1") issues.push("localStorage nie trzyma danych");
+      window.localStorage.removeItem("cw.probe");
+    } catch (e2) {
+      issues.push("localStorage niedostępny");
+    }
+    return issues;
+  }
+
+  function makeFallbackScreen(id, title, body) {
+    if ($(id)) return;
+    var sec = document.createElement("section");
+    sec.id = id;
+    sec.className = "screen";
+    sec.innerHTML = '<div class="bar"><button type="button" class="ib back" data-go="home">‹</button><h1>' +
+      title + '</h1></div><div class="flag"><b class="w"></b><b class="c"></b></div><div class="sc"><div class="card"><p class="muted">' +
+      body + "</p></div></div>";
+    var app = $("app") || document.body;
+    app.appendChild(sec);
+    logLive("odtworzono ekran #" + id);
+  }
+
+  function makeFallbackId(id, tag, html) {
+    if ($(id)) return;
+    var el = document.createElement(tag || "div");
+    el.id = id;
+    if (html) el.innerHTML = html;
+    var host = $("diag") || $("home") || document.body;
+    host.appendChild(el);
+    logLive("odtworzono #" + id);
+  }
+
+  function heal() {
+    var i, n = 0;
+    try {
+      for (i = 0; i < REQUIRED_SCREENS.length; i++) {
+        if (!$(REQUIRED_SCREENS[i])) {
+          makeFallbackScreen(REQUIRED_SCREENS[i], REQUIRED_SCREENS[i], "Ekran odtworzony przez samonaprawę.");
+          n++;
+        }
+      }
+      if (!state || typeof state !== "object") { state = { online: true, models: [], activeId: null, agent: defAgent, voice: { name: null, rate: 1, pitch: 1 }, messages: [], taskLog: [], maxTokens: 1024 }; n++; }
+      if (!state.agent) { state.agent = defAgent; n++; }
+      if (!state.messages) { state.messages = []; n++; }
+      if (!state.taskLog) { state.taskLog = []; n++; }
+      if (!state.voice) { state.voice = { name: null, rate: 1, pitch: 1 }; n++; }
+      if (!state.models) { state.models = []; n++; }
+      if (typeof state.online !== "boolean") { state.online = true; n++; }
+      try { bind(); n++; } catch (e) { logLive("rebind: " + e.message); }
+      save();
+      paint();
+      logLive("samonaprawa: " + n + " działań");
+      toast("Samonaprawa zakończona (" + n + ").");
+    } catch (e2) {
+      logLive("heal crash: " + e2.message);
+    }
+    return diagnose();
+  }
+
+  function drawDiag() {
+    var issues = diagnose();
+    var st = $("diag-status");
+    var list = $("diag-list");
+    if (st) st.textContent = issues.length ? ("Błędy: " + issues.length) : "Wszystkie testy czyste.";
+    if (list) {
+      list.innerHTML = "";
+      if (!issues.length) {
+        list.innerHTML = '<div class="item act"><div class="grow"><h3>OK</h3><p>Ekrany, przyciski, silnik, zadania i pamięć — sprawne.</p></div></div>';
+      } else {
+        var i;
+        for (i = 0; i < issues.length; i++) {
+          var d = document.createElement("div");
+          d.className = "item";
+          d.innerHTML = '<div class="grow"><h3>Błąd</h3><p>' + esc(issues[i]) + "</p></div>";
+          list.appendChild(d);
+        }
+      }
+    }
+    var el = $("diag-log");
+    if (el) el.textContent = LIVE.length ? LIVE.join("\n") : "brak wpisów";
+  }
+
+  var appBound = false;
   function bind() {
-    document.getElementById("app").addEventListener("click", function (ev) {
+    if (!appBound && document.getElementById("app")) {
+      document.getElementById("app").addEventListener("click", function (ev) {
       var t = ev.target;
       while (t && t !== this) {
         if (t.getAttribute && t.getAttribute("data-go")) { go(t.getAttribute("data-go")); return; }
         t = t.parentNode;
       }
     });
+      appBound = true;
+    }
     if ($("net-toggle")) $("net-toggle").onchange = function () { state.online = !!this.checked; save(); };
     if ($("net-toggle-2")) $("net-toggle-2").onchange = function () { state.online = !!this.checked; save(); };
     if ($("btn-send")) $("btn-send").onclick = function () {
@@ -862,6 +1008,8 @@
     if ($("btn-run-task")) $("btn-run-task").onclick = function () {
       runTask(($("task-goal").value || ""), "Własne");
     };
+    if ($("btn-diag")) $("btn-diag").onclick = function () { drawDiag(); toast(diagnose().length ? "Są błędy — kliknij Napraw." : "Testy czyste."); };
+    if ($("btn-heal")) $("btn-heal").onclick = function () { heal(); drawDiag(); };
     if (hasSpeech()) {
       try {
         speechSynthesis.onvoiceschanged = function () {
@@ -889,7 +1037,30 @@
     fillAgent();
   }
 
-  try { bind(); } catch (e) { toast("Start: " + e.message); }
+  window.onerror = function (msg, src, line) {
+    logLive("JS ERROR: " + msg + " @" + line);
+    try { heal(); } catch (e) {}
+    return true;
+  };
+  window.onunhandledrejection = function (ev) {
+    logLive("PROMISE: " + (ev && ev.reason ? ev.reason : "unknown"));
+    try { heal(); } catch (e) {}
+  };
+  try { bind(); } catch (e) { logLive("Start: " + e.message); try { heal(); } catch (e2) {} }
+  try {
+    var boot = diagnose();
+    logLive(boot.length ? ("boot błędów: " + boot.length) : "boot OK");
+    if (boot.length) heal();
+  } catch (e3) { logLive("boot diag: " + e3.message); }
+  setInterval(function () {
+    try {
+      var iss = diagnose();
+      if (iss.length) {
+        logLive("watchdog: " + iss.length + " — naprawiam");
+        heal();
+      }
+    } catch (e) { logLive("watchdog crash: " + e.message); }
+  }, 4000);
 })();
 </script>
 </body>

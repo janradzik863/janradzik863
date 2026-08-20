@@ -7,6 +7,7 @@ import 'engine/engine_manager.dart';
 import 'engine/hf_repository.dart';
 import 'engine/image_engine.dart';
 import 'services/app_services.dart';
+import 'ui/home_screen.dart';
 import 'ui/shell.dart';
 
 void main() async {
@@ -25,7 +26,7 @@ class CwApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AgentProfileController()..load()),
         ChangeNotifierProvider(create: (_) => EngineManager()..load()),
         Provider<HfRepository>(create: (_) => HfRepository()),
-        Provider<ImageEngine>(create: (_) => ImageEngine()),
+        Provider<ImageEngine>(create: () => ImageEngine()),
         ChangeNotifierProvider(create: (_) => VoiceController()..init()),
         ChangeNotifierProxyProvider3<EngineManager, AgentProfileController,
             VoiceController, ChatController>(
@@ -46,7 +47,7 @@ class CwApp extends StatelessWidget {
         title: 'Czarne Wilki',
         debugShowCheckedModeBanner: false,
         theme: buildCwTheme(),
-        home: const CwShell(),
+        home: const HomeScreen(),
       ),
     );
   }

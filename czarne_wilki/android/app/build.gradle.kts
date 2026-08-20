@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "app.czarnewilki"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -20,8 +20,8 @@ android {
 
     defaultConfig {
         applicationId = "app.czarnewilki"
-        minSdk = maxOf(28, flutter.minSdkVersion)
-        targetSdk = flutter.targetSdkVersion
+        minSdk = 28
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 

@@ -232,11 +232,10 @@ class ChatController extends ChangeNotifier {
 
   // ------------------------------------------------------------ mikrofon
 
-  Future<bool> startMic() async {
+  Future<void> startMic() async {
     _sttWords ??= stt.onWords.listen(micWordsCtrl.add);
-    final ok = await stt.start();
+    await stt.start();
     notifyListeners();
-    return ok;
   }
 
   /// Wyłącznie ręczne zatrzymanie (przycisk Stop).

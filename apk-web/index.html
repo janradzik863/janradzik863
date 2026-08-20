@@ -5,107 +5,178 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0E0E12" />
   <title>Czarne Wilki</title>
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+    :root {
+      --crimson: #dc143c; --crimson-dark: #a20a2a; --black: #0e0e12;
+      --surface: #17171d; --alt: #1f1f27; --white: #f7f5f2; --dim: #b9b4ad;
+      --online: #3dcb6f; --offline: #e0a63d;
+      --top: env(safe-area-inset-top, 0px);
+      --bot: env(safe-area-inset-bottom, 0px);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; height: 100%; background: var(--black); color: var(--white);
+      font-family: Roboto, "Noto Sans", system-ui, sans-serif; }
+    body { overflow: hidden; }
+    #app { height: 100%; height: 100dvh; display: flex; flex-direction: column; }
+    .flag { height: 3px; display: flex; flex-shrink: 0; }
+    .flag i { flex: 1; display: block; }
+    .flag .w { background: var(--white); }
+    .flag .c { background: var(--crimson); }
+    .screen { display: none; flex: 1; flex-direction: column; min-height: 0; }
+    .screen.on { display: flex; }
+    .topbar { padding: calc(10px + var(--top)) 12px 10px; display: flex; align-items: center; gap: 8px; }
+    .topbar h1 { margin: 0; font-size: 18px; font-weight: 800; flex: 1; }
+    .topbar .sub { display: block; font-size: 11px; color: var(--dim); font-weight: 500; }
+    .scroll { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 16px 16px calc(24px + var(--bot)); }
+    button { font: inherit; color: inherit; }
+    .ib { width: 42px; height: 42px; border: 0; border-radius: 12px; background: var(--alt); }
+    .ib.back { background: transparent; font-size: 26px; line-height: 1; }
+    .logo { text-align: center; }
+    .logo img { width: min(220px, 62vw); border-radius: 18px; border: 1px solid #ffffff1a; background: #111; }
+    .brand { text-align: center; font-size: 24px; font-weight: 900; letter-spacing: 5px; margin: 12px 0 4px; }
+    .tag { text-align: center; color: var(--dim); font-size: 13px; margin: 0 0 10px; }
+    .chips { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 14px 0 18px; }
+    .chip { border: 1px solid currentColor; border-radius: 20px; padding: 5px 10px; font-size: 11px; font-weight: 800; letter-spacing: 1px; }
+    .onchip { color: var(--online); background: #3dcb6f22; }
+    .offchip { color: var(--offline); background: #e0a63d22; }
+    .modchip { color: var(--crimson); background: #dc143c22; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .tile { background: var(--surface); border: 1px solid #ffffff22; border-radius: 14px;
+      padding: 16px 12px; min-height: 112px; text-align: left; }
+    .tile .e { font-size: 26px; display: block; margin-bottom: 8px; }
+    .tile h3 { margin: 0; font-size: 15px; font-weight: 800; }
+    .tile p { margin: 4px 0 0; font-size: 11px; color: var(--dim); }
+    .card { background: var(--surface); border: 1px solid #ffffff22; border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+    .card h2 { margin: 0 0 8px; font-size: 11px; letter-spacing: 1.4px; color: var(--crimson); }
+    .muted { color: var(--dim); font-size: 12px; line-height: 1.45; }
+    label { display: block; font-size: 12px; color: var(--dim); margin: 10px 0 4px; }
+    input, textarea, select { width: 100%; background: var(--alt); color: var(--white); border: 0; border-radius: 12px; padding: 12px; font: inherit; font-size: 15px; }
+    textarea { min-height: 88px; }
+    .btn { border: 0; border-radius: 12px; padding: 13px 14px; font-weight: 700; background: var(--crimson); color: #fff; width: 100%; }
+    .btn.ghost { background: transparent; border: 1px solid var(--crimson); }
+    .row { display: flex; gap: 10px; }
+    .switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .switch input { width: 46px; height: 26px; accent-color: var(--crimson); }
+    .chat-log { display: flex; flex-direction: column; gap: 10px; }
+    .bubble { max-width: 88%; padding: 12px; border-radius: 14px; font-size: 14.5px; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
+    .me { align-self: flex-end; background: var(--crimson-dark); border-bottom-right-radius: 4px; }
+    .ai { align-self: flex-start; background: var(--surface); border: 1px solid #ffffff22; border-bottom-left-radius: 4px; }
+    .bubble img { width: 100%; border-radius: 10px; margin-bottom: 6px; }
+    .meta { display: block; margin-top: 6px; font-size: 10px; color: var(--dim); }
+    .composer { display: flex; gap: 8px; align-items: flex-end; padding: 8px 10px calc(10px + var(--bot)); }
+    .composer textarea { min-height: 44px; max-height: 120px; }
+    .round { width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 12px; background: var(--crimson); color: #fff; font-size: 20px; }
+    .round.alt { background: var(--alt); color: var(--dim); }
+    .round.live { outline: 2px solid #fff; }
+    .item { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid #ffffff22; border-radius: 14px; padding: 12px; margin-bottom: 8px; width: 100%; text-align: left; }
+    .item.act { background: var(--crimson-dark); }
+    .item .grow { flex: 1; }
+    .item h3 { margin: 0; font-size: 14px; }
+    .item p { margin: 2px 0 0; font-size: 11px; color: var(--dim); }
+    .presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; }
+    .preset { background: var(--alt); border: 1px solid var(--crimson); border-radius: 20px; padding: 7px 10px; font-size: 12px; }
+    .busy { display: none; align-items: center; gap: 10px; padding: 6px 16px; color: var(--dim); font-size: 12px; }
+    .busy.show { display: flex; }
+    .spin { width: 14px; height: 14px; border: 2px solid #ffffff33; border-top-color: var(--crimson); border-radius: 50%; animation: rot .8s linear infinite; }
+    @keyframes rot { to { transform: rotate(360deg); } }
+    #toast { position: fixed; left: 16px; right: 16px; bottom: calc(18px + var(--bot)); background: #1a1a22; border: 1px solid var(--crimson); color: var(--white); padding: 12px 14px; border-radius: 12px; font-size: 13px; display: none; z-index: 50; }
+    #toast.show { display: block; }
+    #modal { position: fixed; inset: 0; background: #00000099; display: none; align-items: flex-end; z-index: 60; }
+    #modal.show { display: flex; }
+    #modal .box { background: var(--surface); width: 100%; border-radius: 18px 18px 0 0; padding: 16px 16px calc(16px + var(--bot)); }
+    #ok { position: absolute; width: 1px; height: 1px; overflow: hidden; }
+  </style>
 </head>
 <body>
   <div id="app">
-    <div class="flag"><span class="w"></span><span class="c"></span></div>
+    <div class="flag"><i class="w"></i><i class="c"></i></div>
 
-    <!-- HOME -->
-    <section id="home" class="screen active">
+    <section id="home" class="screen on">
       <div class="scroll">
-        <div class="logo-wrap"><img src="crest.jpg" alt="Czarne Wilki Prawdy" /></div>
+        <div class="logo"><img src="crest.jpg" alt="Herb" /></div>
         <div class="brand">CZARNE WILKI</div>
         <p class="tag">prywatny asystent AI — twoje urządzenie, twoje zasady</p>
-        <div class="flag" style="border-radius:2px;margin:0 24px"><span class="w"></span><span class="c"></span></div>
+        <div class="flag" style="border-radius:2px;margin:0 24px"><i class="w"></i><i class="c"></i></div>
         <div class="chips">
-          <span id="chip-net" class="chip on">SIECIOWY</span>
-          <span id="chip-model" class="chip model">BRAK MODELU</span>
+          <span id="chip-net" class="chip onchip">SIECIOWY</span>
+          <span id="chip-model" class="chip modchip">BRAK MODELU</span>
         </div>
         <div class="grid">
-          <div class="tile" data-go="chat"><div class="emoji">💬</div><h3>Czat</h3><p>rozmowa i generowanie</p></div>
-          <div class="tile" data-go="models"><div class="emoji">🧠</div><h3>Modele</h3><p>OpenRouter i chmura</p></div>
-          <div class="tile" data-go="voices"><div class="emoji">🎙️</div><h3>Głosy</h3><p>biblioteka i odsłuch</p></div>
-          <div class="tile" data-go="agent"><div class="emoji">🐺</div><h3>Agent</h3><p>imię, rola, charakter</p></div>
-          <div class="tile" data-go="auto"><div class="emoji">⚙️</div><h3>Automatyzacja</h3><p>zadania na urządzeniu</p></div>
-          <div class="tile" data-go="settings"><div class="emoji">🔧</div><h3>Ustawienia</h3><p>tryb pracy, klucz API</p></div>
+          <button type="button" class="tile" data-go="chat"><span class="e">💬</span><h3>Czat</h3><p>rozmowa i obraz</p></button>
+          <button type="button" class="tile" data-go="models"><span class="e">🧠</span><h3>Modele</h3><p>klucz i chmura</p></button>
+          <button type="button" class="tile" data-go="voices"><span class="e">🎙️</span><h3>Głosy</h3><p>biblioteka TTS</p></button>
+          <button type="button" class="tile" data-go="tasks"><span class="e">✅</span><h3>Zadania</h3><p>przepływy AI</p></button>
+          <button type="button" class="tile" data-go="agent"><span class="e">🐺</span><h3>Agent</h3><p>imię i charakter</p></button>
+          <button type="button" class="tile" data-go="auto"><span class="e">⚙️</span><h3>Automatyzacja</h3><p>sterowanie ekranem</p></button>
+          <button type="button" class="tile" data-go="settings"><span class="e">🔧</span><h3>Ustawienia</h3><p>tryb i kopia</p></button>
         </div>
         <div class="card" style="margin-top:16px">
-          <p class="muted">Historia rozmów zostaje na tym telefonie (pamięć aplikacji). W trybie Offline nie wychodzi żadne połączenie. Klucz API idzie wyłącznie do wybranego dostawcy.</p>
+          <p class="muted">1) Wejdź w <b>Modele</b> i wklej klucz OpenRouter.<br>2) Wróć do <b>Czatu</b> i pisz.<br>Historia zostaje na telefonie. Offline = zero połączeń.</p>
         </div>
       </div>
     </section>
 
-    <!-- CHAT -->
     <section id="chat" class="screen">
       <div class="topbar">
-        <button class="icon-btn back" data-go="home">‹</button>
+        <button type="button" class="ib back" data-go="home">‹</button>
         <h1>Czat<span class="sub" id="chat-model">wybierz model</span></h1>
-        <button class="icon-btn" id="btn-new" title="Nowa rozmowa">＋</button>
+        <button type="button" class="ib" id="btn-new">＋</button>
       </div>
-      <div class="flag"><span class="w"></span><span class="c"></span></div>
-      <div id="chat-err" class="err" hidden><span></span><button type="button">×</button></div>
+      <div class="flag"><i class="w"></i><i class="c"></i></div>
       <div id="chat-log" class="scroll chat-log"></div>
-      <div id="chat-busy" class="busy" hidden><div class="spin"></div>Wilki myślą…</div>
+      <div id="chat-busy" class="busy"><div class="spin"></div>Wilki myślą…</div>
       <div class="composer">
-        <button class="round alt" id="btn-plus" title="Więcej">＋</button>
+        <button type="button" class="round alt" id="btn-img">＋</button>
         <textarea id="chat-input" rows="1" placeholder="Pisz do Wilków…"></textarea>
-        <button class="round alt" id="btn-mic" title="Mikrofon">🎤</button>
-        <button class="round" id="btn-send" title="Wyślij">↑</button>
+        <button type="button" class="round alt" id="btn-mic">🎤</button>
+        <button type="button" class="round" id="btn-send">↑</button>
       </div>
     </section>
 
-    <!-- MODELS -->
     <section id="models" class="screen">
       <div class="topbar">
-        <button class="icon-btn back" data-go="home">‹</button>
+        <button type="button" class="ib back" data-go="home">‹</button>
         <h1>Modele</h1>
       </div>
-      <div class="flag"><span class="w"></span><span class="c"></span></div>
+      <div class="flag"><i class="w"></i><i class="c"></i></div>
       <div class="scroll">
         <div class="card switch">
-          <div>
-            <strong>Tryb Sieciowy</strong>
-            <p class="muted" id="net-hint">Dozwolone połączenia: chmura.</p>
-          </div>
+          <div><strong>Tryb Sieciowy</strong><p class="muted" id="net-hint">Chmura dozwolona.</p></div>
           <input type="checkbox" id="net-toggle" checked />
         </div>
         <div class="card">
-          <h2>MODELE CHMUROWE (API)</h2>
-          <p class="muted">Darmowy mózg: konto na OpenRouter.ai → klucz → chip poniżej.</p>
+          <h2>MODELE CHMUROWE</h2>
+          <p class="muted">Załóż konto na openrouter.ai, wygeneruj klucz i wklej go poniżej. Chip ustawia darmowy model.</p>
           <div class="presets">
-            <button class="preset" data-base="https://openrouter.ai/api/v1" data-model="openai/gpt-oss-120b:free">OpenRouter (darmowe)</button>
-            <button class="preset" data-base="https://api.deepseek.com/v1" data-model="deepseek-chat">DeepSeek</button>
-            <button class="preset" data-base="https://api.openai.com/v1" data-model="gpt-4o-mini">OpenAI</button>
+            <button type="button" class="preset" data-base="https://openrouter.ai/api/v1" data-model="openai/gpt-oss-120b:free">OpenRouter (darmowe)</button>
+            <button type="button" class="preset" data-base="https://api.deepseek.com/v1" data-model="deepseek-chat">DeepSeek</button>
+            <button type="button" class="preset" data-base="https://api.openai.com/v1" data-model="gpt-4o-mini">OpenAI</button>
+            <button type="button" class="preset" data-base="https://api.anthropic.com/v1" data-model="claude-sonnet-4-5">Anthropic</button>
+            <button type="button" class="preset" data-base="https://generativelanguage.googleapis.com/v1beta" data-model="gemini-2.0-flash">Gemini</button>
+            <button type="button" class="preset" data-base="https://api.moonshot.ai/v1" data-model="kimi-k2.5">Kimi</button>
           </div>
           <label>Base URL</label>
-          <input id="m-base" placeholder="https://openrouter.ai/api/v1" />
+          <input id="m-base" value="https://openrouter.ai/api/v1" />
           <label>Klucz API</label>
-          <input id="m-key" type="password" placeholder="sk-or-…" />
+          <input id="m-key" type="password" placeholder="sk-or-v1-…" autocomplete="off" />
           <label>Nazwa modelu</label>
-          <input id="m-id" placeholder="openai/gpt-oss-120b:free" />
+          <input id="m-id" value="openai/gpt-oss-120b:free" />
           <div style="height:10px"></div>
-          <button class="btn" id="btn-save-model">Zapisz i aktywuj model chmurowy</button>
+          <button type="button" class="btn" id="btn-save-model">Zapisz i aktywuj</button>
         </div>
         <div id="model-list"></div>
-        <div class="card">
-          <h2>MODELE LOKALNE (GGUF)</h2>
-          <p class="muted">Lokalne GGUF (llama.cpp) są w pełnym wydaniu natywnym Flutter. Ten APK jest gotowy do sideloadu i obsługuje chmurę od razu — bez NDK.</p>
-        </div>
       </div>
     </section>
 
-    <!-- VOICES -->
     <section id="voices" class="screen">
       <div class="topbar">
-        <button class="icon-btn back" data-go="home">‹</button>
+        <button type="button" class="ib back" data-go="home">‹</button>
         <h1>Głosy</h1>
       </div>
-      <div class="flag"><span class="w"></span><span class="c"></span></div>
+      <div class="flag"><i class="w"></i><i class="c"></i></div>
       <div class="scroll">
         <div class="card">
-          <h2>BIBLIOTEKA TTS</h2>
-          <p class="muted">Głosy zainstalowane w systemie. Polski na początku listy.</p>
+          <h2>TTS</h2>
           <label>Tempo <span id="rate-val">1.00</span></label>
           <input type="range" id="tts-rate" min="0.5" max="1.6" step="0.05" value="1" />
           <label>Wysokość <span id="pitch-val">1.00</span></label>
@@ -115,81 +186,742 @@
       </div>
     </section>
 
-    <!-- AGENT -->
     <section id="agent" class="screen">
       <div class="topbar">
-        <button class="icon-btn back" data-go="home">‹</button>
+        <button type="button" class="ib back" data-go="home">‹</button>
         <h1>Agent</h1>
       </div>
-      <div class="flag"><span class="w"></span><span class="c"></span></div>
+      <div class="flag"><i class="w"></i><i class="c"></i></div>
       <div class="scroll">
         <div class="card">
           <h2>PERSONALIZACJA</h2>
-          <label>Imię</label>
-          <input id="ag-name" />
-          <label>Rola</label>
-          <input id="ag-role" />
-          <label>System Prompt</label>
-          <textarea id="ag-sys"></textarea>
+          <label>Imię</label><input id="ag-name" />
+          <label>Rola</label><input id="ag-role" />
+          <label>System Prompt</label><textarea id="ag-sys"></textarea>
           <label>Temperatura <span id="temp-val">0.70</span></label>
           <input type="range" id="ag-temp" min="0" max="1.5" step="0.05" value="0.7" />
           <div style="height:10px"></div>
-          <button class="btn" id="btn-save-agent">Zapisz profil</button>
+          <button type="button" class="btn" id="btn-save-agent">Zapisz profil</button>
         </div>
       </div>
     </section>
 
-    <!-- AUTOMATION -->
     <section id="auto" class="screen">
       <div class="topbar">
-        <button class="icon-btn back" data-go="home">‹</button>
+        <button type="button" class="ib back" data-go="home">‹</button>
         <h1>Automatyzacja</h1>
       </div>
-      <div class="flag"><span class="w"></span><span class="c"></span></div>
+      <div class="flag"><i class="w"></i><i class="c"></i></div>
       <div class="scroll">
         <div class="card">
           <h2>STEROWANIE EKRANEM</h2>
-          <p class="muted">Natywna usługa dostępności (drzewo UI → stuknięcia → wpisywanie) jest w module Kotlin aplikacji Flutter. Ten pakiet sideload daje czat, głosy i chmurę od razu.</p>
-          <p class="muted">Pełny APK z automatyzacją buduje GitHub Actions (`.github/workflows/build-apk.yml`) po przyznaniu uprawnienia <em>workflows</em>.</p>
+          <p class="muted">Usługa dostępności (stuknięcia, wpisywanie, drzewo UI) jest w natywnym module Kotlin. Ten APK daje czat, modele, głosy i kopię zapasową — to działa offline od UI i online po wklejeniu klucza.</p>
         </div>
       </div>
     </section>
 
-    <!-- SETTINGS -->
     <section id="settings" class="screen">
       <div class="topbar">
-        <button class="icon-btn back" data-go="home">‹</button>
+        <button type="button" class="ib back" data-go="home">‹</button>
         <h1>Ustawienia</h1>
       </div>
-      <div class="flag"><span class="w"></span><span class="c"></span></div>
+      <div class="flag"><i class="w"></i><i class="c"></i></div>
       <div class="scroll">
         <div class="card switch">
-          <div>
-            <strong>Tryb Sieciowy</strong>
-            <p class="muted">Wyłączony: zero połączeń.</p>
-          </div>
+          <div><strong>Tryb Sieciowy</strong><p class="muted">Wyłącz = zero połączeń.</p></div>
           <input type="checkbox" id="net-toggle-2" checked />
         </div>
         <div class="card">
-          <h2>KOPIA ZAPASOWA (BEZ CHMURY)</h2>
-          <p class="muted">Jeden plik JSON. Przenosisz go ręcznie — pendrive, kabel, wiadomość do siebie.</p>
+          <h2>KOPIA ZAPASOWA</h2>
+          <p class="muted">Plik JSON zostaje u Ciebie. Bez serwera.</p>
           <div class="row">
-            <button class="btn" id="btn-export">Eksportuj</button>
-            <button class="btn ghost" id="btn-import">Importuj</button>
+            <button type="button" class="btn" id="btn-export">Eksportuj</button>
+            <button type="button" class="btn ghost" id="btn-import">Importuj</button>
           </div>
-          <input type="file" id="import-file" accept="application/json" hidden />
+          <input type="file" id="import-file" accept="application/json,text/plain" hidden />
         </div>
         <div class="card">
           <h2>PRYWATNOŚĆ</h2>
-          <p class="muted">• Historia: lokalna pamięć aplikacji.<br>• Klucze API: tylko do wybranego dostawcy.<br>• Offline = zerowe połączenia.<br>• Kopia: zwykły JSON, bez serwerów pośrednich.</p>
+          <p class="muted">Historia lokalnie. Klucz API tylko do wybranego dostawcy. Offline = brak sieci.</p>
         </div>
         <div class="card">
-          <strong>CZARNE WILKI</strong>
-          <p class="muted">Wersja 0.1.0 — sideload APK.<br>WOJAN · Czarne Wilki Prawdy · Wszyscy wolni obywatele niepodległej.</p>
+          <h2>AUTO-KONFIGURACJA URZĄDZENIA</h2>
+          <p class="muted" id="tier-hint">Wykrywanie RAM…</p>
+        </div>
+        <div class="card">
+          <strong>CZARNE WILKI · PrivateLM · v0.3.0</strong>
+          <p class="muted">OpenAI · Anthropic · Gemini · Kimi · OpenRouter<br>WOJAN · Wszyscy wolni obywatele niepodległej.</p>
         </div>
       </div>
     </section>
   </div>
-  <script src="cw.js"></script>
+
+  <div id="toast"></div>
+  <div id="modal"><div class="box">
+    <h2 style="margin:0 0 8px;font-size:16px" id="modal-title">Obraz</h2>
+    <textarea id="modal-input" placeholder="Opisz obraz…"></textarea>
+    <div class="row" style="margin-top:10px">
+      <button type="button" class="btn ghost" id="modal-cancel">Anuluj</button>
+      <button type="button" class="btn" id="modal-ok">Generuj</button>
+    </div>
+  </div></div>
+  <span id="ok">ok</span>
+
+  <script>
+(function () {
+  function $(id) { return document.getElementById(id); }
+  function toast(msg) {
+    var t = $("toast");
+    t.textContent = msg;
+    t.className = "show";
+    clearTimeout(toast._tm);
+    toast._tm = setTimeout(function () { t.className = ""; }, 4200);
+  }
+  function storeGet() {
+    try { return window.localStorage.getItem("cw.v2"); } catch (e) { return null; }
+  }
+  function storeSet(v) {
+    try { window.localStorage.setItem("cw.v2", v); return true; } catch (e) { return false; }
+  }
+
+  var defAgent = {
+    name: "Wilk",
+    role: "Wierny asystent właściciela urządzenia",
+    system: "Jesteś prywatnym asystentem AI w aplikacji Czarne Wilki. Odpowiadasz rzeczowo, po polsku, konkretnie.",
+    temperature: 0.7
+  };
+  var state = { online: true, models: [], activeId: null, agent: defAgent, voice: { name: null, rate: 1, pitch: 1 }, messages: [] };
+  try {
+    var raw = storeGet();
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") {
+        if (typeof parsed.online === "boolean") state.online = parsed.online;
+        if (parsed.models && parsed.models.length) state.models = parsed.models;
+        if (parsed.activeId) state.activeId = parsed.activeId;
+        if (parsed.agent) {
+          state.agent = {
+            name: parsed.agent.name || defAgent.name,
+            role: parsed.agent.role || defAgent.role,
+            system: parsed.agent.system || defAgent.system,
+            temperature: typeof parsed.agent.temperature === "number" ? parsed.agent.temperature : 0.7
+          };
+        }
+        if (parsed.voice) state.voice = parsed.voice;
+        if (parsed.messages) state.messages = parsed.messages;
+      }
+    }
+  } catch (e) {}
+
+  var busy = false;
+  var micOn = false;
+  var rec = null;
+
+  function save() {
+    storeSet(JSON.stringify(state));
+    paint();
+  }
+  function activeModel() {
+    var i, m;
+    for (i = 0; i < state.models.length; i++) {
+      if (state.models[i].id === state.activeId) return state.models[i];
+    }
+    return state.models.length ? state.models[0] : null;
+  }
+  function go(id) {
+    var screens = document.querySelectorAll(".screen");
+    var i;
+    for (i = 0; i < screens.length; i++) {
+      screens[i].className = screens[i].id === id ? "screen on" : "screen";
+    }
+    if (id === "chat") drawChat();
+    if (id === "models") drawModels();
+    if (id === "voices") drawVoices();
+    if (id === "agent") fillAgent();
+  }
+  function paint() {
+    var m = activeModel();
+    var net = $("chip-net");
+    if (net) {
+      net.textContent = state.online ? "SIECIOWY" : "OFFLINE";
+      net.className = "chip " + (state.online ? "onchip" : "offchip");
+    }
+    if ($("chip-model")) $("chip-model").textContent = m ? m.display : "BRAK MODELU";
+    if ($("chat-model")) $("chat-model").textContent = m ? m.display : "najpierw dodaj model";
+    if ($("net-toggle")) $("net-toggle").checked = state.online;
+    if ($("net-toggle-2")) $("net-toggle-2").checked = state.online;
+    if ($("net-hint")) $("net-hint").textContent = state.online ? "Chmura dozwolona." : "OFFLINE — zero połączeń.";
+  }
+  function setOnline(v) { state.online = !!v; save(); }
+
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function drawChat() {
+    var log = $("chat-log");
+    if (!log) return;
+    log.innerHTML = "";
+    var i;
+    for (i = 0; i < state.messages.length; i++) {
+      var msg = state.messages[i];
+      var el = document.createElement("div");
+      el.className = "bubble " + (msg.role === "user" ? "me" : "ai");
+      if (msg.image) {
+        el.innerHTML = '<img alt="" src="' + msg.image + '" />';
+      }
+      if (msg.content) {
+        el.appendChild(document.createTextNode(msg.content));
+      }
+      if (msg.model) {
+        var meta = document.createElement("span");
+        meta.className = "meta";
+        meta.textContent = msg.model;
+        el.appendChild(meta);
+      }
+      log.appendChild(el);
+    }
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function sysPrompt() {
+    var a = state.agent;
+    var p = [];
+    if (a.name) p.push("Nazywasz się " + a.name + ".");
+    if (a.role) p.push("Twoja rola: " + a.role + ".");
+    if (a.system) p.push(a.system);
+    return p.join(" ");
+  }
+
+  function setBusy(on) {
+    busy = on;
+    $("chat-busy").className = on ? "busy show" : "busy";
+  }
+
+  function kindOf(base) {
+    var u = String(base || "").toLowerCase();
+    if (u.indexOf("anthropic") !== -1) return "anthropic";
+    if (u.indexOf("googleapis") !== -1 || u.indexOf("generativelanguage") !== -1) return "gemini";
+    return "openai";
+  }
+
+  function buildRequest(model, messages, stream) {
+    var kind = kindOf(model.base);
+    var root = String(model.base || "").replace(/\/+$/, "");
+    if (kind === "anthropic") {
+      var turns = [];
+      var i;
+      for (i = 0; i < messages.length; i++) {
+        if (messages[i].role === "system") continue;
+        turns.push({
+          role: messages[i].role === "assistant" ? "assistant" : "user",
+          content: messages[i].content
+        });
+      }
+      return {
+        url: root + "/messages",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": model.key,
+          "anthropic-version": "2023-06-01"
+        },
+        body: {
+          model: model.modelId,
+          max_tokens: state.maxTokens || 2048,
+          temperature: state.agent.temperature,
+          stream: !!stream,
+          system: sysPrompt(),
+          messages: turns
+        }
+      };
+    }
+    if (kind === "gemini") {
+      var contents = [];
+      var j;
+      for (j = 0; j < messages.length; j++) {
+        if (messages[j].role === "system") continue;
+        contents.push({
+          role: messages[j].role === "assistant" ? "model" : "user",
+          parts: [{ text: messages[j].content }]
+        });
+      }
+      return {
+        url: root + "/models/" + model.modelId + (stream ? ":streamGenerateContent?alt=sse&key=" : ":generateContent?key=") + encodeURIComponent(model.key),
+        headers: { "Content-Type": "application/json" },
+        body: {
+          system_instruction: { parts: [{ text: sysPrompt() }] },
+          contents: contents,
+          generationConfig: {
+            temperature: state.agent.temperature,
+            maxOutputTokens: state.maxTokens || 2048
+          }
+        }
+      };
+    }
+    var headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + model.key
+    };
+    if (String(model.base).indexOf("openrouter") !== -1) {
+      headers["HTTP-Referer"] = "https://appassets.androidplatform.net/";
+      headers["X-Title"] = "Czarne Wilki";
+    }
+    return {
+      url: root + "/chat/completions",
+      headers: headers,
+      body: {
+        model: model.modelId,
+        stream: !!stream,
+        temperature: state.agent.temperature,
+        max_tokens: state.maxTokens || 2048,
+        messages: messages
+      }
+    };
+  }
+
+  function extractPlain(kind, j) {
+    if (!j) return "";
+    if (kind === "anthropic") {
+      var blocks = j.content || [];
+      var t = "", b;
+      for (b = 0; b < blocks.length; b++) if (blocks[b].text) t += blocks[b].text;
+      return t;
+    }
+    if (kind === "gemini") {
+      var cands = j.candidates || [];
+      if (!cands[0] || !cands[0].content || !cands[0].content.parts) return "";
+      return cands[0].content.parts[0].text || "";
+    }
+    var c = j.choices && j.choices[0];
+    return (c && c.message && c.message.content) || "";
+  }
+
+  function sendText(text) {
+    var model = activeModel();
+    if (!model) { toast("Wejdź w Modele, wklej klucz OpenRouter i naciśnij Zapisz."); return; }
+    if (!state.online) { toast("Tryb Offline — włącz Sieciowy w Modelach."); return; }
+    if (!model.key) { toast("Model nie ma klucza API."); return; }
+    state.messages.push({ role: "user", content: text });
+    save();
+    drawChat();
+    setBusy(true);
+
+    var messages = [{ role: "system", content: sysPrompt() }];
+    var i;
+    for (i = 0; i < state.messages.length; i++) {
+      var m = state.messages[i];
+      if (m.content && (m.role === "user" || m.role === "assistant")) {
+        messages.push({ role: m.role, content: m.content });
+      }
+    }
+
+    var built = buildRequest(model, messages, true);
+    var builtPlain = buildRequest(model, messages, false);
+    var url = built.url;
+    var headers = built.headers;
+    var bodyStream = built.body;
+    var bodyPlain = builtPlain.body;
+
+    fetch(url, { method: "POST", headers: headers, body: JSON.stringify(bodyStream) })
+      .then(function (res) {
+        if (!res.ok) {
+          return res.text().then(function (t) {
+            throw new Error("HTTP " + res.status + " " + String(t).slice(0, 180));
+          });
+        }
+        if (res.body && typeof res.body.getReader === "function") {
+          return readStream(res).then(function (acc) { return acc; });
+        }
+        return fetch(url, { method: "POST", headers: headers, body: JSON.stringify(bodyPlain) })
+          .then(function (r2) { return r2.json(); })
+          .then(function (j) {
+            return extractPlain(kindOf(model.base), j);
+          });
+      })
+      .then(function (acc) {
+        state.messages.push({ role: "assistant", content: acc || "(pusta odpowiedź)", model: model.display });
+        save();
+        drawChat();
+      })
+      .catch(function (err) {
+        // drugi strzał bez streamu — starsze WebView
+        fetch(url, { method: "POST", headers: headers, body: JSON.stringify(bodyPlain) })
+          .then(function (r) {
+            if (!r.ok) return r.text().then(function (t) { throw new Error("HTTP " + r.status + " " + String(t).slice(0, 180)); });
+            return r.json();
+          })
+          .then(function (j) {
+            var msg2 = extractPlain(kindOf(model.base), j);
+            state.messages.push({ role: "assistant", content: msg2 || "(pusta odpowiedź)", model: model.display });
+            save();
+            drawChat();
+          })
+          .catch(function (e2) {
+            toast("Błąd: " + (e2 && e2.message ? e2.message : err.message) + " — sprawdź klucz i sieć.");
+          })
+          .then(function () { setBusy(false); });
+        return;
+      })
+      .then(function () { if (busy) setBusy(false); });
+  }
+
+  function readStream(res) {
+    var reader = res.body.getReader();
+    var dec = new TextDecoder();
+    var buf = "";
+    var acc = "";
+    var log = $("chat-log");
+    var bubble = document.createElement("div");
+    bubble.className = "bubble ai";
+    log.appendChild(bubble);
+
+    function pump() {
+      return reader.read().then(function (part) {
+        if (part.done) {
+          bubble.textContent = acc;
+          return acc;
+        }
+        buf += dec.decode(part.value, { stream: true });
+        var lines = buf.split("\n");
+        buf = lines.pop() || "";
+        var li;
+        for (li = 0; li < lines.length; li++) {
+          var line = lines[li].replace(/\r$/, "").trim();
+          if (line.indexOf("data:") !== 0) continue;
+          var payload = line.slice(5).trim();
+          if (payload === "[DONE]") continue;
+          try {
+            var json = JSON.parse(payload);
+            var piece = null;
+            if (json.choices && json.choices[0] && json.choices[0].delta) {
+              piece = json.choices[0].delta.content;
+            } else if (json.type === "content_block_delta" && json.delta) {
+              piece = json.delta.text;
+            } else if (json.candidates && json.candidates[0] && json.candidates[0].content) {
+              var pts = json.candidates[0].content.parts;
+              piece = pts && pts[0] && pts[0].text;
+            }
+            if (piece) {
+              acc += piece;
+              bubble.textContent = acc + " ▍";
+              log.scrollTop = log.scrollHeight;
+            }
+          } catch (ignore) {}
+        }
+        return pump();
+      });
+    }
+    return pump();
+  }
+
+  function genImage(prompt) {
+    if (!state.online) { toast("Obrazy wymagają trybu Sieciowego."); return; }
+    setBusy(true);
+    go("chat");
+    var url = "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt) +
+      "?width=768&height=768&nologo=true&seed=" + (Date.now() % 100000);
+    fetch(url)
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.blob();
+      })
+      .then(function (blob) {
+        return new Promise(function (resolve, reject) {
+          var fr = new FileReader();
+          fr.onload = function () { resolve(fr.result); };
+          fr.onerror = reject;
+          fr.readAsDataURL(blob);
+        });
+      })
+      .then(function (data) {
+        state.messages.push({ role: "user", content: prompt });
+        state.messages.push({ role: "assistant", content: "Wygenerowano obraz.", image: data });
+        save();
+        drawChat();
+      })
+      .catch(function (e) { toast("Obraz: " + e.message); })
+      .then(function () { setBusy(false); });
+  }
+
+  function drawModels() {
+    var box = $("model-list");
+    box.innerHTML = "";
+    var i;
+    for (i = 0; i < state.models.length; i++) {
+      (function (m) {
+        var el = document.createElement("div");
+        el.className = "item" + (m.id === state.activeId ? " act" : "");
+        el.innerHTML = '<div class="grow"><h3>' + esc(m.display) + "</h3><p>" + esc(m.modelId) +
+          "</p></div><button type='button' class='ib'>✕</button>";
+        el.querySelector(".grow").onclick = function () {
+          state.activeId = m.id;
+          save();
+          drawModels();
+          toast("Aktywny: " + m.display);
+        };
+        el.querySelector("button").onclick = function (ev) {
+          ev.stopPropagation();
+          var next = [];
+          var j;
+          for (j = 0; j < state.models.length; j++) if (state.models[j].id !== m.id) next.push(state.models[j]);
+          state.models = next;
+          if (state.activeId === m.id) state.activeId = next.length ? next[0].id : null;
+          save();
+          drawModels();
+        };
+        box.appendChild(el);
+      })(state.models[i]);
+    }
+  }
+
+  function fillAgent() {
+    $("ag-name").value = state.agent.name;
+    $("ag-role").value = state.agent.role;
+    $("ag-sys").value = state.agent.system;
+    $("ag-temp").value = state.agent.temperature;
+    $("temp-val").textContent = Number(state.agent.temperature).toFixed(2);
+  }
+
+  function hasSpeech() {
+    return typeof window.speechSynthesis !== "undefined" && window.speechSynthesis;
+  }
+
+  function drawVoices() {
+    var box = $("voice-list");
+    if (!hasSpeech()) {
+      box.innerHTML = '<div class="card"><p class="muted">Ten WebView nie udostępnia TTS. Czat działa bez głosu.</p></div>';
+      return;
+    }
+    var voices = speechSynthesis.getVoices() || [];
+    var pl = [], rest = [], i;
+    for (i = 0; i < voices.length; i++) {
+      if (String(voices[i].lang || "").toLowerCase().indexOf("pl") === 0) pl.push(voices[i]);
+      else rest.push(voices[i]);
+    }
+    var all = pl.concat(rest);
+    box.innerHTML = "";
+    if (!all.length) {
+      box.innerHTML = '<div class="card"><p class="muted">Brak głosów systemowych. Zainstaluj język polski w ustawieniach Androida → Język i wprowadzanie → TTS.</p></div>';
+      return;
+    }
+    for (i = 0; i < all.length; i++) {
+      (function (v, isPl) {
+        var el = document.createElement("div");
+        el.className = "item" + (state.voice.name === v.name ? " act" : "");
+        el.innerHTML = '<div class="grow"><h3>' + esc(v.name) + "</h3><p>" + esc(v.lang) +
+          (isPl ? " · polski" : "") + "</p></div><button type='button' class='ib'>▶</button>";
+        el.querySelector(".grow").onclick = function () {
+          state.voice.name = v.name;
+          save();
+          drawVoices();
+          toast("Głos: " + v.name);
+        };
+        el.querySelector("button").onclick = function (ev) {
+          ev.stopPropagation();
+          speak("Czarne Wilki. To jest próbka głosu " + v.name, v);
+        };
+        box.appendChild(el);
+      })(all[i], i < pl.length);
+    }
+  }
+
+  function speak(text, voiceObj) {
+    if (!hasSpeech()) { toast("Brak TTS na tym urządzeniu."); return; }
+    speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.rate = state.voice.rate || 1;
+    u.pitch = state.voice.pitch || 1;
+    var voices = speechSynthesis.getVoices() || [];
+    var pick = voiceObj, i;
+    if (!pick) {
+      for (i = 0; i < voices.length; i++) if (voices[i].name === state.voice.name) pick = voices[i];
+    }
+    if (!pick) {
+      for (i = 0; i < voices.length; i++) if (String(voices[i].lang || "").indexOf("pl") === 0) pick = voices[i];
+    }
+    if (pick) u.voice = pick;
+    speechSynthesis.speak(u);
+  }
+
+  function toggleMic() {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { toast("Rozpoznawanie mowy niedostępne w tym WebView."); return; }
+    if (micOn) {
+      micOn = false;
+      try { rec && rec.stop(); } catch (e) {}
+      $("btn-mic").className = "round alt";
+      return;
+    }
+    rec = new SR();
+    rec.lang = "pl-PL";
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.onresult = function (ev) {
+      var t = "", i;
+      for (i = 0; i < ev.results.length; i++) t += ev.results[i][0].transcript;
+      $("chat-input").value = t;
+    };
+    rec.onend = function () { if (micOn) { try { rec.start(); } catch (e) {} } };
+    rec.onerror = function () { toast("Mikrofon: odmowa lub brak silnika STT."); };
+    try { rec.start(); } catch (e) { toast("Nie uruchomiono mikrofonu."); return; }
+    micOn = true;
+    $("btn-mic").className = "round alt live";
+  }
+
+  function exportBackup() {
+    var payload = JSON.stringify({
+      format: "czarne-wilki-backup",
+      version: 1,
+      created_at: Date.now(),
+      agent: state.agent,
+      models: state.models.map(function (m) {
+        return { id: m.id, display: m.display, base: m.base, modelId: m.modelId };
+      }),
+      messages: state.messages
+    }, null, 2);
+    try {
+      var blob = new Blob([payload], { type: "application/json" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "czarne_wilki_backup.json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast("Kopia przygotowana. Jeśli plik nie spadł — skopiuj z okna.");
+    } catch (e) {}
+    $("modal-title").textContent = "Kopia JSON — zaznacz i skopiuj";
+    $("modal-input").value = payload;
+    $("modal").className = "show";
+    $("modal-ok").textContent = "Zamknij";
+    $("modal-ok").onclick = function () { $("modal").className = ""; $("modal-ok").textContent = "Generuj"; };
+  }
+
+  function importBackup(file) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var data = JSON.parse(reader.result);
+        if (data.format !== "czarne-wilki-backup") throw new Error("to nie jest kopia Czarne Wilki");
+        if (data.agent) state.agent = {
+          name: data.agent.name || defAgent.name,
+          role: data.agent.role || defAgent.role,
+          system: data.agent.system || defAgent.system,
+          temperature: data.agent.temperature || 0.7
+        };
+        if (data.messages) state.messages = data.messages;
+        save();
+        toast("Zaimportowano kopię.");
+      } catch (e) { toast("Import: " + e.message); }
+    };
+    reader.readAsText(file);
+  }
+
+  document.getElementById("app").addEventListener("click", function (ev) {
+    var t = ev.target;
+    while (t && t !== this) {
+      if (t.getAttribute && t.getAttribute("data-go")) {
+        go(t.getAttribute("data-go"));
+        return;
+      }
+      t = t.parentNode;
+    }
+  });
+
+  $("net-toggle").onchange = function () { setOnline(this.checked); };
+  $("net-toggle-2").onchange = function () { setOnline(this.checked); };
+
+  $("btn-send").onclick = function () {
+    var t = $("chat-input").value.replace(/^\s+|\s+$/g, "");
+    if (!t || busy) return;
+    $("chat-input").value = "";
+    sendText(t);
+  };
+  $("chat-input").addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      $("btn-send").click();
+    }
+  });
+  $("btn-new").onclick = function () { state.messages = []; save(); drawChat(); toast("Nowa rozmowa."); };
+  $("btn-mic").onclick = toggleMic;
+  $("btn-img").onclick = function () {
+    $("modal-title").textContent = "Generowanie obrazu";
+    $("modal-input").value = "";
+    $("modal-ok").textContent = "Generuj";
+    $("modal").className = "show";
+    $("modal-ok").onclick = function () {
+      var p = $("modal-input").value.replace(/^\s+|\s+$/g, "");
+      $("modal").className = "";
+      if (p) genImage(p);
+    };
+  };
+  $("modal-cancel").onclick = function () { $("modal").className = ""; };
+
+  var presets = document.querySelectorAll(".preset");
+  var pi;
+  for (pi = 0; pi < presets.length; pi++) {
+    presets[pi].onclick = function () {
+      $("m-base").value = this.getAttribute("data-base");
+      $("m-id").value = this.getAttribute("data-model");
+      toast("Ustawiono " + this.textContent + " — wklej klucz i zapisz.");
+    };
+  }
+  $("btn-save-model").onclick = function () {
+    var base = $("m-base").value.replace(/^\s+|\s+$/g, "");
+    var key = $("m-key").value.replace(/^\s+|\s+$/g, "");
+    var modelId = $("m-id").value.replace(/^\s+|\s+$/g, "");
+    if (!base || !key || !modelId) { toast("Uzupełnij Base URL, klucz i nazwę modelu."); return; }
+    var entry = {
+      id: "m" + Date.now(),
+      display: modelId.split("/").pop(),
+      base: base,
+      key: key,
+      modelId: modelId
+    };
+    state.models.push(entry);
+    state.activeId = entry.id;
+    save();
+    drawModels();
+    toast("Model aktywny: " + entry.display + ". Wróć do Czatu.");
+  };
+
+  $("btn-save-agent").onclick = function () {
+    state.agent.name = $("ag-name").value;
+    state.agent.role = $("ag-role").value;
+    state.agent.system = $("ag-sys").value;
+    state.agent.temperature = Number($("ag-temp").value);
+    save();
+    toast("Zapisano profil.");
+  };
+  $("ag-temp").oninput = function () { $("temp-val").textContent = Number(this.value).toFixed(2); };
+  $("tts-rate").oninput = function () {
+    state.voice.rate = Number(this.value);
+    $("rate-val").textContent = state.voice.rate.toFixed(2);
+    save();
+  };
+  $("tts-pitch").oninput = function () {
+    state.voice.pitch = Number(this.value);
+    $("pitch-val").textContent = state.voice.pitch.toFixed(2);
+    save();
+  };
+  $("btn-export").onclick = exportBackup;
+  $("btn-import").onclick = function () { $("import-file").click(); };
+  $("import-file").onchange = function () {
+    if (this.files && this.files[0]) importBackup(this.files[0]);
+  };
+
+  if (hasSpeech()) {
+    speechSynthesis.onvoiceschanged = function () {
+      if ($("voices").className.indexOf("on") !== -1) drawVoices();
+    };
+  }
+  $("tts-rate").value = state.voice.rate || 1;
+  $("tts-pitch").value = state.voice.pitch || 1;
+  $("rate-val").textContent = Number(state.voice.rate || 1).toFixed(2);
+  $("pitch-val").textContent = Number(state.voice.pitch || 1).toFixed(2);
+  paint();
+  $("ok").textContent = "js-ok";
+})();
+  </script>
 </body>
 </html>

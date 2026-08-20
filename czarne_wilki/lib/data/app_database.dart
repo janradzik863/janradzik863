@@ -13,10 +13,7 @@ import 'models.dart';
 /// Android/iOS: sqflite (kanał platformowy).
 /// Linux/Windows: sqflite_common_ffi (bundlowany silnik sqlite3).
 class AppDatabase {
-  factory AppDatabase() => instance;
   AppDatabase._();
-
-  static final AppDatabase instance = AppDatabase._();
 
   static const _dbName = 'czarne_wilki.db';
   static const _dbVersion = 1;

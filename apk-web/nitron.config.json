@@ -1,7 +1,7 @@
 {
   "name": "Czarne Wilki",
   "packageId": "app.czarnewilki.release",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "entry": "index.html",
   "orientation": "portrait",
   "statusBar": true,

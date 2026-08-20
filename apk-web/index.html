@@ -7,355 +7,427 @@
   <title>Czarne Wilki</title>
   <style>
     :root {
-      --crimson: #dc143c; --crimson-dark: #a20a2a; --black: #0e0e12;
-      --surface: #17171d; --alt: #1f1f27; --white: #f7f5f2; --dim: #b9b4ad;
-      --online: #3dcb6f; --offline: #e0a63d;
-      --top: env(safe-area-inset-top, 0px);
-      --bot: env(safe-area-inset-bottom, 0px);
+      --crimson:#dc143c; --dark:#a20a2a; --black:#0e0e12; --surf:#17171d;
+      --alt:#1f1f27; --white:#f7f5f2; --dim:#b9b4ad; --on:#3dcb6f; --off:#e0a63d;
+      --top:env(safe-area-inset-top,0px); --bot:env(safe-area-inset-bottom,0px);
     }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { margin: 0; height: 100%; background: var(--black); color: var(--white);
-      font-family: Roboto, "Noto Sans", system-ui, sans-serif; }
-    body { overflow: hidden; }
-    #app { height: 100%; height: 100dvh; display: flex; flex-direction: column; }
-    .flag { height: 3px; display: flex; flex-shrink: 0; }
-    .flag i { flex: 1; display: block; }
-    .flag .w { background: var(--white); }
-    .flag .c { background: var(--crimson); }
-    .screen { display: none; flex: 1; flex-direction: column; min-height: 0; }
-    .screen.on { display: flex; }
-    .topbar { padding: calc(10px + var(--top)) 12px 10px; display: flex; align-items: center; gap: 8px; }
-    .topbar h1 { margin: 0; font-size: 18px; font-weight: 800; flex: 1; }
-    .topbar .sub { display: block; font-size: 11px; color: var(--dim); font-weight: 500; }
-    .scroll { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 16px 16px calc(24px + var(--bot)); }
-    button { font: inherit; color: inherit; }
-    .ib { width: 42px; height: 42px; border: 0; border-radius: 12px; background: var(--alt); }
-    .ib.back { background: transparent; font-size: 26px; line-height: 1; }
-    .logo { text-align: center; }
-    .logo img { width: min(220px, 62vw); border-radius: 18px; border: 1px solid #ffffff1a; background: #111; }
-    .brand { text-align: center; font-size: 24px; font-weight: 900; letter-spacing: 5px; margin: 12px 0 4px; }
-    .tag { text-align: center; color: var(--dim); font-size: 13px; margin: 0 0 10px; }
-    .chips { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 14px 0 18px; }
-    .chip { border: 1px solid currentColor; border-radius: 20px; padding: 5px 10px; font-size: 11px; font-weight: 800; letter-spacing: 1px; }
-    .onchip { color: var(--online); background: #3dcb6f22; }
-    .offchip { color: var(--offline); background: #e0a63d22; }
-    .modchip { color: var(--crimson); background: #dc143c22; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .tile { background: var(--surface); border: 1px solid #ffffff22; border-radius: 14px;
-      padding: 16px 12px; min-height: 112px; text-align: left; }
-    .tile .e { font-size: 26px; display: block; margin-bottom: 8px; }
-    .tile h3 { margin: 0; font-size: 15px; font-weight: 800; }
-    .tile p { margin: 4px 0 0; font-size: 11px; color: var(--dim); }
-    .card { background: var(--surface); border: 1px solid #ffffff22; border-radius: 14px; padding: 14px; margin-bottom: 12px; }
-    .card h2 { margin: 0 0 8px; font-size: 11px; letter-spacing: 1.4px; color: var(--crimson); }
-    .muted { color: var(--dim); font-size: 12px; line-height: 1.45; }
-    label { display: block; font-size: 12px; color: var(--dim); margin: 10px 0 4px; }
-    input, textarea, select { width: 100%; background: var(--alt); color: var(--white); border: 0; border-radius: 12px; padding: 12px; font: inherit; font-size: 15px; }
-    textarea { min-height: 88px; }
-    .btn { border: 0; border-radius: 12px; padding: 13px 14px; font-weight: 700; background: var(--crimson); color: #fff; width: 100%; }
-    .btn.ghost { background: transparent; border: 1px solid var(--crimson); }
-    .row { display: flex; gap: 10px; }
-    .switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .switch input { width: 46px; height: 26px; accent-color: var(--crimson); }
-    .chat-log { display: flex; flex-direction: column; gap: 10px; }
-    .bubble { max-width: 88%; padding: 12px; border-radius: 14px; font-size: 14.5px; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
-    .me { align-self: flex-end; background: var(--crimson-dark); border-bottom-right-radius: 4px; }
-    .ai { align-self: flex-start; background: var(--surface); border: 1px solid #ffffff22; border-bottom-left-radius: 4px; }
-    .bubble img { width: 100%; border-radius: 10px; margin-bottom: 6px; }
-    .meta { display: block; margin-top: 6px; font-size: 10px; color: var(--dim); }
-    .composer { display: flex; gap: 8px; align-items: flex-end; padding: 8px 10px calc(10px + var(--bot)); }
-    .composer textarea { min-height: 44px; max-height: 120px; }
-    .round { width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 12px; background: var(--crimson); color: #fff; font-size: 20px; }
-    .round.alt { background: var(--alt); color: var(--dim); }
-    .round.live { outline: 2px solid #fff; }
-    .item { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid #ffffff22; border-radius: 14px; padding: 12px; margin-bottom: 8px; width: 100%; text-align: left; }
-    .item.act { background: var(--crimson-dark); }
-    .item .grow { flex: 1; }
-    .item h3 { margin: 0; font-size: 14px; }
-    .item p { margin: 2px 0 0; font-size: 11px; color: var(--dim); }
-    .presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; }
-    .preset { background: var(--alt); border: 1px solid var(--crimson); border-radius: 20px; padding: 7px 10px; font-size: 12px; }
-    .busy { display: none; align-items: center; gap: 10px; padding: 6px 16px; color: var(--dim); font-size: 12px; }
-    .busy.show { display: flex; }
-    .spin { width: 14px; height: 14px; border: 2px solid #ffffff33; border-top-color: var(--crimson); border-radius: 50%; animation: rot .8s linear infinite; }
-    @keyframes rot { to { transform: rotate(360deg); } }
-    #toast { position: fixed; left: 16px; right: 16px; bottom: calc(18px + var(--bot)); background: #1a1a22; border: 1px solid var(--crimson); color: var(--white); padding: 12px 14px; border-radius: 12px; font-size: 13px; display: none; z-index: 50; }
-    #toast.show { display: block; }
-    #modal { position: fixed; inset: 0; background: #00000099; display: none; align-items: flex-end; z-index: 60; }
-    #modal.show { display: flex; }
-    #modal .box { background: var(--surface); width: 100%; border-radius: 18px 18px 0 0; padding: 16px 16px calc(16px + var(--bot)); }
-    #ok { position: absolute; width: 1px; height: 1px; overflow: hidden; }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;height:100%;background:var(--black);color:var(--white);
+      font-family:Roboto,"Noto Sans",system-ui,sans-serif}
+    body{overflow:hidden}
+    #app{height:100%;min-height:100vh;display:flex;flex-direction:column}
+    .flag{height:3px;display:flex;flex-shrink:0}
+    .flag b{flex:1;display:block}
+    .w{background:var(--white)}.c{background:var(--crimson)}
+    .screen{display:none;flex:1;flex-direction:column;min-height:0}
+    .screen.on{display:flex}
+    .bar{padding:calc(10px + var(--top)) 12px 10px;display:flex;align-items:center;gap:8px}
+    .bar h1{margin:0;font-size:18px;font-weight:800;flex:1}
+    .bar .sub{display:block;font-size:11px;color:var(--dim);font-weight:500}
+    .sc{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(24px + var(--bot))}
+    button{font:inherit;color:inherit}
+    .ib{width:42px;height:42px;border:0;border-radius:12px;background:var(--alt)}
+    .back{background:transparent;font-size:26px;line-height:1}
+    .logo{text-align:center}
+    .logo img{width:min(210px,60vw);border-radius:18px;border:1px solid #ffffff1a;background:#111}
+    .brand{text-align:center;font-size:24px;font-weight:900;letter-spacing:5px;margin:12px 0 4px}
+    .tag{text-align:center;color:var(--dim);font-size:13px;margin:0 0 10px}
+    .chips{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:14px 0 18px}
+    .chip{border:1px solid currentColor;border-radius:20px;padding:5px 10px;font-size:11px;font-weight:800;letter-spacing:1px}
+    .on{color:var(--on);background:#3dcb6f22}
+    .off{color:var(--off);background:#e0a63d22}
+    .md{color:var(--crimson);background:#dc143c22}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .tile{background:var(--surf);border:1px solid #ffffff22;border-radius:14px;padding:16px 12px;min-height:108px;text-align:left}
+    .tile .e{font-size:24px;display:block;margin-bottom:8px}
+    .tile h3{margin:0;font-size:15px}
+    .tile p{margin:4px 0 0;font-size:11px;color:var(--dim)}
+    .card{background:var(--surf);border:1px solid #ffffff22;border-radius:14px;padding:14px;margin-bottom:12px}
+    .card h2{margin:0 0 8px;font-size:11px;letter-spacing:1.3px;color:var(--crimson)}
+    .muted{color:var(--dim);font-size:12px;line-height:1.45}
+    label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
+    input,textarea{width:100%;background:var(--alt);color:var(--white);border:0;border-radius:12px;padding:12px;font:inherit;font-size:15px}
+    textarea{min-height:80px}
+    .btn{border:0;border-radius:12px;padding:13px 14px;font-weight:700;background:var(--crimson);color:#fff;width:100%}
+    .ghost{background:transparent;border:1px solid var(--crimson)}
+    .row{display:flex;gap:10px}
+    .sw{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .sw input{width:46px;height:26px;accent-color:var(--crimson)}
+    .log{display:flex;flex-direction:column;gap:10px}
+    .bub{max-width:88%;padding:12px;border-radius:14px;font-size:14.5px;line-height:1.4;white-space:pre-wrap;word-break:break-word}
+    .me{align-self:flex-end;background:var(--dark);border-bottom-right-radius:4px}
+    .ai{align-self:flex-start;background:var(--surf);border:1px solid #ffffff22;border-bottom-left-radius:4px}
+    .bub img{width:100%;border-radius:10px;margin-bottom:6px}
+    .meta{display:block;margin-top:6px;font-size:10px;color:var(--dim)}
+    .comp{display:flex;gap:8px;align-items:flex-end;padding:8px 10px calc(10px + var(--bot))}
+    .comp textarea{min-height:44px;max-height:110px}
+    .rd{width:44px;height:44px;flex-shrink:0;border:0;border-radius:12px;background:var(--crimson);color:#fff;font-size:20px}
+    .alt{background:var(--alt);color:var(--dim)}
+    .item{display:flex;align-items:flex-start;gap:10px;background:var(--surf);border:1px solid #ffffff22;border-radius:14px;padding:12px;margin-bottom:8px;width:100%;text-align:left}
+    .act{background:var(--dark)}
+    .grow{flex:1}
+    .item h3{margin:0;font-size:14px}
+    .item p{margin:3px 0 0;font-size:12px;color:var(--dim);white-space:pre-wrap}
+    .pres{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+    .pr{background:var(--alt);border:1px solid var(--crimson);border-radius:20px;padding:7px 10px;font-size:12px}
+    .busy{display:none;align-items:center;gap:10px;padding:6px 16px;color:var(--dim);font-size:12px}
+    .busy.show{display:flex}
+    .spin{width:14px;height:14px;border:2px solid #ffffff33;border-top-color:var(--crimson);border-radius:50%;animation:r .8s linear infinite}
+    @keyframes r{to{transform:rotate(360deg)}}
+    #toast{position:fixed;left:16px;right:16px;bottom:calc(18px + var(--bot));background:#1a1a22;border:1px solid var(--crimson);padding:12px 14px;border-radius:12px;font-size:13px;display:none;z-index:50}
+    #toast.show{display:block}
+    #modal{position:fixed;inset:0;background:#0009;display:none;align-items:flex-end;z-index:60}
+    #modal.show{display:flex}
+    #modal .box{background:var(--surf);width:100%;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + var(--bot))}
   </style>
 </head>
 <body>
-  <div id="app">
-    <div class="flag"><i class="w"></i><i class="c"></i></div>
+<div id="app">
+  <div class="flag"><b class="w"></b><b class="c"></b></div>
 
-    <section id="home" class="screen on">
-      <div class="scroll">
-        <div class="logo"><img src="crest.jpg" alt="Herb" /></div>
-        <div class="brand">CZARNE WILKI</div>
-        <p class="tag">prywatny asystent AI — twoje urządzenie, twoje zasady</p>
-        <div class="flag" style="border-radius:2px;margin:0 24px"><i class="w"></i><i class="c"></i></div>
-        <div class="chips">
-          <span id="chip-net" class="chip onchip">SIECIOWY</span>
-          <span id="chip-model" class="chip modchip">BRAK MODELU</span>
-        </div>
-        <div class="grid">
-          <button type="button" class="tile" data-go="chat"><span class="e">💬</span><h3>Czat</h3><p>rozmowa i obraz</p></button>
-          <button type="button" class="tile" data-go="models"><span class="e">🧠</span><h3>Modele</h3><p>klucz i chmura</p></button>
-          <button type="button" class="tile" data-go="voices"><span class="e">🎙️</span><h3>Głosy</h3><p>biblioteka TTS</p></button>
-          <button type="button" class="tile" data-go="tasks"><span class="e">✅</span><h3>Zadania</h3><p>przepływy AI</p></button>
-          <button type="button" class="tile" data-go="agent"><span class="e">🐺</span><h3>Agent</h3><p>imię i charakter</p></button>
-          <button type="button" class="tile" data-go="auto"><span class="e">⚙️</span><h3>Automatyzacja</h3><p>sterowanie ekranem</p></button>
-          <button type="button" class="tile" data-go="settings"><span class="e">🔧</span><h3>Ustawienia</h3><p>tryb i kopia</p></button>
-        </div>
-        <div class="card" style="margin-top:16px">
-          <p class="muted">1) Wejdź w <b>Modele</b> i wklej klucz OpenRouter.<br>2) Wróć do <b>Czatu</b> i pisz.<br>Historia zostaje na telefonie. Offline = zero połączeń.</p>
-        </div>
+  <section id="home" class="screen on">
+    <div class="sc">
+      <div class="logo"><img src="crest.jpg" alt="Herb Czarne Wilki" /></div>
+      <div class="brand">CZARNE WILKI</div>
+      <p class="tag">prywatny asystent AI — twoje urządzenie, twoje zasady</p>
+      <div class="flag" style="border-radius:2px;margin:0 24px"><b class="w"></b><b class="c"></b></div>
+      <div class="chips">
+        <span id="chip-net" class="chip on">SIECIOWY</span>
+        <span id="chip-model" class="chip md">WILK LOKALNY</span>
       </div>
-    </section>
-
-    <section id="chat" class="screen">
-      <div class="topbar">
-        <button type="button" class="ib back" data-go="home">‹</button>
-        <h1>Czat<span class="sub" id="chat-model">wybierz model</span></h1>
-        <button type="button" class="ib" id="btn-new">＋</button>
+      <div class="grid">
+        <button type="button" class="tile" data-go="chat"><span class="e">💬</span><h3>Czat</h3><p>rozmowa i obraz</p></button>
+        <button type="button" class="tile" data-go="models"><span class="e">🧠</span><h3>Modele</h3><p>lokalny + chmura</p></button>
+        <button type="button" class="tile" data-go="voices"><span class="e">🎙️</span><h3>Głosy</h3><p>biblioteka TTS</p></button>
+        <button type="button" class="tile" data-go="tasks"><span class="e">✅</span><h3>Zadania</h3><p>gotowe przepływy</p></button>
+        <button type="button" class="tile" data-go="agent"><span class="e">🐺</span><h3>Agent</h3><p>imię i charakter</p></button>
+        <button type="button" class="tile" data-go="auto"><span class="e">⚙️</span><h3>Automatyzacja</h3><p>sterowanie ekranem</p></button>
+        <button type="button" class="tile" data-go="settings"><span class="e">🔧</span><h3>Ustawienia</h3><p>tryb i kopia</p></button>
       </div>
-      <div class="flag"><i class="w"></i><i class="c"></i></div>
-      <div id="chat-log" class="scroll chat-log"></div>
-      <div id="chat-busy" class="busy"><div class="spin"></div>Wilki myślą…</div>
-      <div class="composer">
-        <button type="button" class="round alt" id="btn-img">＋</button>
-        <textarea id="chat-input" rows="1" placeholder="Pisz do Wilków…"></textarea>
-        <button type="button" class="round alt" id="btn-mic">🎤</button>
-        <button type="button" class="round" id="btn-send">↑</button>
+      <div class="card" style="margin-top:16px">
+        <p class="muted">Działa od razu — silnik lokalny <b>Wilk</b> odpowiada bez internetu. Chmurę (OpenRouter / OpenAI / Claude / Gemini / Kimi) włączysz w Modelach po wklejeniu klucza.</p>
       </div>
-    </section>
-
-    <section id="models" class="screen">
-      <div class="topbar">
-        <button type="button" class="ib back" data-go="home">‹</button>
-        <h1>Modele</h1>
-      </div>
-      <div class="flag"><i class="w"></i><i class="c"></i></div>
-      <div class="scroll">
-        <div class="card switch">
-          <div><strong>Tryb Sieciowy</strong><p class="muted" id="net-hint">Chmura dozwolona.</p></div>
-          <input type="checkbox" id="net-toggle" checked />
-        </div>
-        <div class="card">
-          <h2>MODELE CHMUROWE</h2>
-          <p class="muted">Załóż konto na openrouter.ai, wygeneruj klucz i wklej go poniżej. Chip ustawia darmowy model.</p>
-          <div class="presets">
-            <button type="button" class="preset" data-base="https://openrouter.ai/api/v1" data-model="openai/gpt-oss-120b:free">OpenRouter (darmowe)</button>
-            <button type="button" class="preset" data-base="https://api.deepseek.com/v1" data-model="deepseek-chat">DeepSeek</button>
-            <button type="button" class="preset" data-base="https://api.openai.com/v1" data-model="gpt-4o-mini">OpenAI</button>
-            <button type="button" class="preset" data-base="https://api.anthropic.com/v1" data-model="claude-sonnet-4-5">Anthropic</button>
-            <button type="button" class="preset" data-base="https://generativelanguage.googleapis.com/v1beta" data-model="gemini-2.0-flash">Gemini</button>
-            <button type="button" class="preset" data-base="https://api.moonshot.ai/v1" data-model="kimi-k2.5">Kimi</button>
-          </div>
-          <label>Base URL</label>
-          <input id="m-base" value="https://openrouter.ai/api/v1" />
-          <label>Klucz API</label>
-          <input id="m-key" type="password" placeholder="sk-or-v1-…" autocomplete="off" />
-          <label>Nazwa modelu</label>
-          <input id="m-id" value="openai/gpt-oss-120b:free" />
-          <div style="height:10px"></div>
-          <button type="button" class="btn" id="btn-save-model">Zapisz i aktywuj</button>
-        </div>
-        <div id="model-list"></div>
-      </div>
-    </section>
-
-    <section id="voices" class="screen">
-      <div class="topbar">
-        <button type="button" class="ib back" data-go="home">‹</button>
-        <h1>Głosy</h1>
-      </div>
-      <div class="flag"><i class="w"></i><i class="c"></i></div>
-      <div class="scroll">
-        <div class="card">
-          <h2>TTS</h2>
-          <label>Tempo <span id="rate-val">1.00</span></label>
-          <input type="range" id="tts-rate" min="0.5" max="1.6" step="0.05" value="1" />
-          <label>Wysokość <span id="pitch-val">1.00</span></label>
-          <input type="range" id="tts-pitch" min="0.5" max="1.8" step="0.05" value="1" />
-        </div>
-        <div id="voice-list"></div>
-      </div>
-    </section>
-
-    <section id="agent" class="screen">
-      <div class="topbar">
-        <button type="button" class="ib back" data-go="home">‹</button>
-        <h1>Agent</h1>
-      </div>
-      <div class="flag"><i class="w"></i><i class="c"></i></div>
-      <div class="scroll">
-        <div class="card">
-          <h2>PERSONALIZACJA</h2>
-          <label>Imię</label><input id="ag-name" />
-          <label>Rola</label><input id="ag-role" />
-          <label>System Prompt</label><textarea id="ag-sys"></textarea>
-          <label>Temperatura <span id="temp-val">0.70</span></label>
-          <input type="range" id="ag-temp" min="0" max="1.5" step="0.05" value="0.7" />
-          <div style="height:10px"></div>
-          <button type="button" class="btn" id="btn-save-agent">Zapisz profil</button>
-        </div>
-      </div>
-    </section>
-
-    <section id="auto" class="screen">
-      <div class="topbar">
-        <button type="button" class="ib back" data-go="home">‹</button>
-        <h1>Automatyzacja</h1>
-      </div>
-      <div class="flag"><i class="w"></i><i class="c"></i></div>
-      <div class="scroll">
-        <div class="card">
-          <h2>STEROWANIE EKRANEM</h2>
-          <p class="muted">Usługa dostępności (stuknięcia, wpisywanie, drzewo UI) jest w natywnym module Kotlin. Ten APK daje czat, modele, głosy i kopię zapasową — to działa offline od UI i online po wklejeniu klucza.</p>
-        </div>
-      </div>
-    </section>
-
-    <section id="settings" class="screen">
-      <div class="topbar">
-        <button type="button" class="ib back" data-go="home">‹</button>
-        <h1>Ustawienia</h1>
-      </div>
-      <div class="flag"><i class="w"></i><i class="c"></i></div>
-      <div class="scroll">
-        <div class="card switch">
-          <div><strong>Tryb Sieciowy</strong><p class="muted">Wyłącz = zero połączeń.</p></div>
-          <input type="checkbox" id="net-toggle-2" checked />
-        </div>
-        <div class="card">
-          <h2>KOPIA ZAPASOWA</h2>
-          <p class="muted">Plik JSON zostaje u Ciebie. Bez serwera.</p>
-          <div class="row">
-            <button type="button" class="btn" id="btn-export">Eksportuj</button>
-            <button type="button" class="btn ghost" id="btn-import">Importuj</button>
-          </div>
-          <input type="file" id="import-file" accept="application/json,text/plain" hidden />
-        </div>
-        <div class="card">
-          <h2>PRYWATNOŚĆ</h2>
-          <p class="muted">Historia lokalnie. Klucz API tylko do wybranego dostawcy. Offline = brak sieci.</p>
-        </div>
-        <div class="card">
-          <h2>AUTO-KONFIGURACJA URZĄDZENIA</h2>
-          <p class="muted" id="tier-hint">Wykrywanie RAM…</p>
-        </div>
-        <div class="card">
-          <strong>CZARNE WILKI · PrivateLM · v0.3.0</strong>
-          <p class="muted">OpenAI · Anthropic · Gemini · Kimi · OpenRouter<br>WOJAN · Wszyscy wolni obywatele niepodległej.</p>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <div id="toast"></div>
-  <div id="modal"><div class="box">
-    <h2 style="margin:0 0 8px;font-size:16px" id="modal-title">Obraz</h2>
-    <textarea id="modal-input" placeholder="Opisz obraz…"></textarea>
-    <div class="row" style="margin-top:10px">
-      <button type="button" class="btn ghost" id="modal-cancel">Anuluj</button>
-      <button type="button" class="btn" id="modal-ok">Generuj</button>
     </div>
-  </div></div>
-  <span id="ok">ok</span>
+  </section>
 
-  <script>
+  <section id="chat" class="screen">
+    <div class="bar">
+      <button type="button" class="ib back" data-go="home">‹</button>
+      <h1>Czat<span class="sub" id="chat-model">Wilk lokalny</span></h1>
+      <button type="button" class="ib" id="btn-new">＋</button>
+    </div>
+    <div class="flag"><b class="w"></b><b class="c"></b></div>
+    <div id="chat-log" class="sc log"></div>
+    <div id="chat-busy" class="busy"><div class="spin"></div>Wilki myślą…</div>
+    <div class="comp">
+      <button type="button" class="rd alt" id="btn-img">＋</button>
+      <textarea id="chat-input" rows="1" placeholder="Pisz do Wilków…"></textarea>
+      <button type="button" class="rd alt" id="btn-mic">🎤</button>
+      <button type="button" class="rd" id="btn-send">↑</button>
+    </div>
+  </section>
+
+  <section id="models" class="screen">
+    <div class="bar">
+      <button type="button" class="ib back" data-go="home">‹</button>
+      <h1>Modele</h1>
+    </div>
+    <div class="flag"><b class="w"></b><b class="c"></b></div>
+    <div class="sc">
+      <div class="card sw">
+        <div><strong>Tryb Sieciowy</strong><p class="muted" id="net-hint">Chmura dozwolona.</p></div>
+        <input type="checkbox" id="net-toggle" checked />
+      </div>
+      <div class="card">
+        <h2>SILNIK LOKALNY</h2>
+        <p class="muted">Wilk odpowiada na urządzeniu, bez klucza i bez sieci. Zawsze aktywny jako zapas.</p>
+      </div>
+      <div class="card">
+        <h2>CHMURA (OPCJONALNIE)</h2>
+        <p class="muted">Wybierz dostawcę, wklej klucz, zapisz. Bez klucza zostaje Wilk lokalny.</p>
+        <div class="pres">
+          <button type="button" class="pr" data-base="https://openrouter.ai/api/v1" data-model="openai/gpt-oss-120b:free">OpenRouter</button>
+          <button type="button" class="pr" data-base="https://api.deepseek.com/v1" data-model="deepseek-chat">DeepSeek</button>
+          <button type="button" class="pr" data-base="https://api.openai.com/v1" data-model="gpt-4o-mini">OpenAI</button>
+          <button type="button" class="pr" data-base="https://api.anthropic.com/v1" data-model="claude-sonnet-4-5">Anthropic</button>
+          <button type="button" class="pr" data-base="https://generativelanguage.googleapis.com/v1beta" data-model="gemini-2.0-flash">Gemini</button>
+          <button type="button" class="pr" data-base="https://api.moonshot.ai/v1" data-model="kimi-k2.5">Kimi</button>
+        </div>
+        <label>Base URL</label>
+        <input id="m-base" value="https://openrouter.ai/api/v1" />
+        <label>Klucz API</label>
+        <input id="m-key" type="password" placeholder="wklej klucz — puste = tylko Wilk lokalny" autocomplete="off" />
+        <label>Nazwa modelu</label>
+        <input id="m-id" value="openai/gpt-oss-120b:free" />
+        <div style="height:10px"></div>
+        <button type="button" class="btn" id="btn-save-model">Zapisz i aktywuj chmurę</button>
+      </div>
+      <div id="model-list"></div>
+    </div>
+  </section>
+
+  <section id="voices" class="screen">
+    <div class="bar">
+      <button type="button" class="ib back" data-go="home">‹</button>
+      <h1>Głosy</h1>
+    </div>
+    <div class="flag"><b class="w"></b><b class="c"></b></div>
+    <div class="sc">
+      <div class="card">
+        <h2>TTS</h2>
+        <label>Tempo <span id="rate-val">1.00</span></label>
+        <input type="range" id="tts-rate" min="0.5" max="1.6" step="0.05" value="1" />
+        <label>Wysokość <span id="pitch-val">1.00</span></label>
+        <input type="range" id="tts-pitch" min="0.5" max="1.8" step="0.05" value="1" />
+      </div>
+      <div id="voice-list"></div>
+    </div>
+  </section>
+
+  <section id="tasks" class="screen">
+    <div class="bar">
+      <button type="button" class="ib back" data-go="home">‹</button>
+      <h1>Zadania</h1>
+    </div>
+    <div class="flag"><b class="w"></b><b class="c"></b></div>
+    <div class="sc">
+      <div class="card">
+        <h2>GOTOWY PRZEPŁYW</h2>
+        <p class="muted">Wybierz zadanie albo wpisz własne. Wynik pojawia się poniżej — działa bez klucza (Wilk lokalny).</p>
+        <label>Własny cel</label>
+        <textarea id="task-goal" placeholder="Np. ułóż plan dnia od 7:00 do 22:00"></textarea>
+        <div style="height:10px"></div>
+        <button type="button" class="btn" id="btn-run-task">Uruchom zadanie</button>
+      </div>
+      <div id="task-presets"></div>
+      <div id="task-out"></div>
+    </div>
+  </section>
+
+  <section id="agent" class="screen">
+    <div class="bar">
+      <button type="button" class="ib back" data-go="home">‹</button>
+      <h1>Agent</h1>
+    </div>
+    <div class="flag"><b class="w"></b><b class="c"></b></div>
+    <div class="sc">
+      <div class="card">
+        <h2>PERSONALIZACJA</h2>
+        <label>Imię</label><input id="ag-name" />
+        <label>Rola</label><input id="ag-role" />
+        <label>System Prompt</label><textarea id="ag-sys"></textarea>
+        <label>Temperatura <span id="temp-val">0.70</span></label>
+        <input type="range" id="ag-temp" min="0" max="1.5" step="0.05" value="0.7" />
+        <div style="height:10px"></div>
+        <button type="button" class="btn" id="btn-save-agent">Zapisz profil</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="auto" class="screen">
+    <div class="bar">
+      <button type="button" class="ib back" data-go="home">‹</button>
+      <h1>Automatyzacja</h1>
+    </div>
+    <div class="flag"><b class="w"></b><b class="c"></b></div>
+    <div class="sc">
+      <div class="card">
+        <h2>CHECKLISTA SIDELLOAD</h2>
+        <p class="muted">Android blokuje dostępność dla APK spoza Play. To ograniczenie systemu, nie błąd aplikacji.</p>
+      </div>
+      <div class="item"><div class="grow"><h3>1. Ustawienia ograniczone</h3><p>Ustawienia → Aplikacje → Czarne Wilki → ⋮ → Zezwól na ustawienia ograniczone</p></div></div>
+      <div class="item"><div class="grow"><h3>2. Usługa dostępności</h3><p>Ustawienia → Dostępność → Czarne Wilki — Sterowanie Ekranem</p></div></div>
+      <div class="item"><div class="grow"><h3>3. Polityka</h3><p>Agent działa tylko na Twoim urządzeniu. Nie publikuje, nie komentuje i nie udaje człowieka wobec osób trzecich. Każda akcja ma trafić do dziennika.</p></div></div>
+      <div class="card">
+        <p class="muted">Pełna pętla ekran → AI → stuknięcie jest w module Kotlin (Flutter). Ten pakiet daje czat, zadania, modele i głosy — to działa teraz.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="settings" class="screen">
+    <div class="bar">
+      <button type="button" class="ib back" data-go="home">‹</button>
+      <h1>Ustawienia</h1>
+    </div>
+    <div class="flag"><b class="w"></b><b class="c"></b></div>
+    <div class="sc">
+      <div class="card sw">
+        <div><strong>Tryb Sieciowy</strong><p class="muted">Wyłącz = zero połączeń, tylko Wilk.</p></div>
+        <input type="checkbox" id="net-toggle-2" checked />
+      </div>
+      <div class="card">
+        <h2>KOPIA ZAPASOWA</h2>
+        <p class="muted">JSON zostaje u Ciebie. Bez serwera.</p>
+        <div class="row">
+          <button type="button" class="btn" id="btn-export">Eksportuj</button>
+          <button type="button" class="btn ghost" id="btn-import">Importuj</button>
+        </div>
+        <input type="file" id="import-file" accept="application/json,text/plain" hidden />
+      </div>
+      <div class="card">
+        <h2>AUTO-KONFIGURACJA</h2>
+        <p class="muted" id="tier-hint">Liczenie tieru urządzenia…</p>
+      </div>
+      <div class="card">
+        <h2>PRYWATNOŚĆ</h2>
+        <p class="muted">Historia lokalnie. Klucz API tylko do wybranego dostawcy. Offline = brak sieci.</p>
+      </div>
+      <div class="card">
+        <strong>CZARNE WILKI · v0.4.0</strong>
+        <p class="muted">Wilk lokalny + OpenAI · Anthropic · Gemini · Kimi · OpenRouter<br>WOJAN · Wszyscy wolni obywatele niepodległej.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="toast"></div>
+<div id="modal"><div class="box">
+  <h2 style="margin:0 0 8px;font-size:16px" id="modal-title">Obraz</h2>
+  <textarea id="modal-input" placeholder="Opisz obraz…"></textarea>
+  <div class="row" style="margin-top:10px">
+    <button type="button" class="btn ghost" id="modal-cancel">Anuluj</button>
+    <button type="button" class="btn" id="modal-ok">Generuj</button>
+  </div>
+</div></div>
+
+<script>
 (function () {
   function $(id) { return document.getElementById(id); }
   function toast(msg) {
     var t = $("toast");
-    t.textContent = msg;
+    if (!t) return;
+    t.textContent = String(msg || "");
     t.className = "show";
-    clearTimeout(toast._tm);
-    toast._tm = setTimeout(function () { t.className = ""; }, 4200);
+    clearTimeout(toast.tm);
+    toast.tm = setTimeout(function () { t.className = ""; }, 4500);
   }
   function storeGet() {
-    try { return window.localStorage.getItem("cw.v2"); } catch (e) { return null; }
+    try { return window.localStorage.getItem("cw.v4"); } catch (e) { return null; }
   }
   function storeSet(v) {
-    try { window.localStorage.setItem("cw.v2", v); return true; } catch (e) { return false; }
+    try { window.localStorage.setItem("cw.v4", v); return true; } catch (e) { return false; }
   }
+
+  var TASKS = [
+    { id: "plan", title: "Plan dnia", hint: "Ułóż konkretny plan od pobudki do snu.", seed: "Ułóż plan dnia od 7:00 do 22:00: praca, posiłki, ruch, odpoczynek." },
+    { id: "mail", title: "Szkic maila", hint: "Krótki, rzeczowy list po polsku.", seed: "Napisz krótki, rzeczowy mail z prośbą o przesunięcie spotkania o jeden dzień." },
+    { id: "suma", title: "Streszczenie", hint: "Zbierz ostatnią rozmowę w punktach.", seed: "Streszcz dotychczasową rozmowę w 5 zwięzłych punktach." },
+    { id: "zakupy", title: "Lista zakupów", hint: "Posiłki na 3 dni → lista.", seed: "Zrób listę zakupów na 3 dni: śniadania, obiady, kolacje, prosto i tanio." },
+    { id: "trening", title: "Trening 20 min", hint: "Bez sprzętu, w domu.", seed: "Ułóż trening 20 minut bez sprzętu, rozgrzewka + 4 ćwiczenia + schłodzenie." }
+  ];
 
   var defAgent = {
     name: "Wilk",
     role: "Wierny asystent właściciela urządzenia",
-    system: "Jesteś prywatnym asystentem AI w aplikacji Czarne Wilki. Odpowiadasz rzeczowo, po polsku, konkretnie.",
+    system: "Jesteś prywatnym asystentem AI w aplikacji Czarne Wilki. Odpowiadasz po polsku, krótko i konkretnie.",
     temperature: 0.7
   };
-  var state = { online: true, models: [], activeId: null, agent: defAgent, voice: { name: null, rate: 1, pitch: 1 }, messages: [] };
+  var state = {
+    online: true,
+    models: [],
+    activeId: null,
+    agent: defAgent,
+    voice: { name: null, rate: 1, pitch: 1 },
+    messages: [
+      { role: "assistant", content: "Jestem Wilk. Działam lokalnie na tym telefonie. Napisz, a odpowiem — klucz chmury nie jest potrzebny.", model: "Wilk lokalny" }
+    ],
+    taskLog: [],
+    maxTokens: 1024
+  };
+
   try {
     var raw = storeGet();
     if (raw) {
-      var parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object") {
-        if (typeof parsed.online === "boolean") state.online = parsed.online;
-        if (parsed.models && parsed.models.length) state.models = parsed.models;
-        if (parsed.activeId) state.activeId = parsed.activeId;
-        if (parsed.agent) {
+      var p = JSON.parse(raw);
+      if (p && typeof p === "object") {
+        if (typeof p.online === "boolean") state.online = p.online;
+        if (p.models && p.models.length) state.models = p.models;
+        if (p.activeId) state.activeId = p.activeId;
+        if (p.agent) {
           state.agent = {
-            name: parsed.agent.name || defAgent.name,
-            role: parsed.agent.role || defAgent.role,
-            system: parsed.agent.system || defAgent.system,
-            temperature: typeof parsed.agent.temperature === "number" ? parsed.agent.temperature : 0.7
+            name: p.agent.name || defAgent.name,
+            role: p.agent.role || defAgent.role,
+            system: p.agent.system || defAgent.system,
+            temperature: typeof p.agent.temperature === "number" ? p.agent.temperature : 0.7
           };
         }
-        if (parsed.voice) state.voice = parsed.voice;
-        if (parsed.messages) state.messages = parsed.messages;
+        if (p.voice) state.voice = p.voice;
+        if (p.messages && p.messages.length) state.messages = p.messages;
+        if (p.taskLog) state.taskLog = p.taskLog;
+        if (p.maxTokens) state.maxTokens = p.maxTokens;
       }
     }
   } catch (e) {}
 
-  var busy = false;
-  var micOn = false;
-  var rec = null;
+  var busy = false, micOn = false, rec = null;
 
   function save() {
-    storeSet(JSON.stringify(state));
+    try { storeSet(JSON.stringify(state)); } catch (e) {}
     paint();
   }
   function activeModel() {
-    var i, m;
+    var i;
     for (i = 0; i < state.models.length; i++) {
       if (state.models[i].id === state.activeId) return state.models[i];
     }
     return state.models.length ? state.models[0] : null;
   }
   function go(id) {
-    var screens = document.querySelectorAll(".screen");
-    var i;
+    var screens = document.querySelectorAll(".screen"), i, found = false;
     for (i = 0; i < screens.length; i++) {
-      screens[i].className = screens[i].id === id ? "screen on" : "screen";
+      if (screens[i].id === id) { screens[i].className = "screen on"; found = true; }
+      else screens[i].className = "screen";
     }
+    if (!found) { toast("Brak ekranu: " + id); $("home").className = "screen on"; return; }
     if (id === "chat") drawChat();
     if (id === "models") drawModels();
     if (id === "voices") drawVoices();
     if (id === "agent") fillAgent();
+    if (id === "tasks") drawTasks();
   }
   function paint() {
     var m = activeModel();
     var net = $("chip-net");
     if (net) {
       net.textContent = state.online ? "SIECIOWY" : "OFFLINE";
-      net.className = "chip " + (state.online ? "onchip" : "offchip");
+      net.className = "chip " + (state.online ? "on" : "off");
     }
-    if ($("chip-model")) $("chip-model").textContent = m ? m.display : "BRAK MODELU";
-    if ($("chat-model")) $("chat-model").textContent = m ? m.display : "najpierw dodaj model";
+    if ($("chip-model")) $("chip-model").textContent = m ? m.display : "WILK LOKALNY";
+    if ($("chat-model")) $("chat-model").textContent = m ? m.display : "Wilk lokalny";
     if ($("net-toggle")) $("net-toggle").checked = state.online;
     if ($("net-toggle-2")) $("net-toggle-2").checked = state.online;
-    if ($("net-hint")) $("net-hint").textContent = state.online ? "Chmura dozwolona." : "OFFLINE — zero połączeń.";
+    if ($("net-hint")) $("net-hint").textContent = state.online ? "Chmura dozwolona (gdy jest klucz)." : "OFFLINE — tylko Wilk lokalny.";
   }
-  function setOnline(v) { state.online = !!v; save(); }
-
   function esc(s) {
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function localReply(text) {
+    var t = String(text || "").toLowerCase();
+    var a = state.agent.name || "Wilk";
+    if (/cześć|hej|witaj|dzien dobry|dzień/.test(t)) {
+      return "Cześć. Jestem " + a + ". Słucham — powiedz, co mam zrobić.";
+    }
+    if (/plan dnia|plan/.test(t)) {
+      return "Plan dnia:\n07:00 pobudka, woda, 10 min ruchu\n08:00 śniadanie\n09:00–13:00 blok głębokiej pracy\n13:00 obiad + krótki spacer\n14:00–17:00 drugi blok + sprawy\n18:00 trening / obowiązki domu\n19:30 kolacja\n21:00 wyciszenie, bez ekranu\n22:00 sen";
+    }
+    if (/mail|e-mail|wiadomość|wiadomosc/.test(t)) {
+      return "Temat: Prośba o przesunięcie spotkania\n\nDzień dobry,\nproszę o przesunięcie jutrzejszego spotkania o jeden dzień — pojawiła się kolizja. Proponuję ten sam termin dzień później. Daj znać, czy pasuje.\n\nPozdrawiam\n" + a;
+    }
+    if (/zakup|lista/.test(t)) {
+      return "Lista zakupów (3 dni):\n• chleb / owsianka / jajka\n• mleko albo napój roślinny\n• kurczak albo tofu, ryż, makaron\n• cebula, czosnek, marchew, pomidory\n• jabłka, banany\n• oliwa, sól, pieprz\n• woda / herbata";
+    }
+    if (/trening|ćwic|cwicz/.test(t)) {
+      return "Trening 20 min (bez sprzętu):\n2 min marsz w miejscu + krążenia ramion\n4× (40 s pracy / 20 s przerwy):\n• przysiady\n• pompki (na kolanach jeśli trzeba)\n• deska\n• wykroki naprzemienne\n2 min rozciąganie bioder i klatki.";
+    }
+    if (/streszcz|podsum|punkt/.test(t)) {
+      var n = state.messages.length;
+      return "Streszczenie:\n• Rozmówca pisze do " + a + " na tym urządzeniu.\n• Aktywny silnik: " + (activeModel() ? activeModel().display : "Wilk lokalny") + ".\n• W wątku jest " + n + " wiadomości.\n• Tryb: " + (state.online ? "sieciowy" : "offline") + ".\n• Klucz chmury: " + (activeModel() ? "ustawiony" : "brak — odpowiadam lokalnie") + ".";
+    }
+    if (/kim jesteś|kim jestes|co potrafisz|pomoc|help/.test(t)) {
+      return "Jestem " + a + ", asystent Czarnych Wilków. Lokalnie: plan, mail, lista, trening, streszczenie. Z kluczem chmury: pełny model (OpenRouter / OpenAI / Claude / Gemini / Kimi). Zadania są w kaflu Zadania.";
+    }
+    return a + " tu, lokalnie.\n\nOdebrałem: „" + String(text).slice(0, 240) + "”\n\nMogę ułożyć plan dnia, szkic maila, listę zakupów, trening albo streszczenie. Dopisz klucz w Modelach, jeśli chcesz pełny model chmurowy.";
   }
 
   function drawChat() {
@@ -366,13 +438,14 @@
     for (i = 0; i < state.messages.length; i++) {
       var msg = state.messages[i];
       var el = document.createElement("div");
-      el.className = "bubble " + (msg.role === "user" ? "me" : "ai");
+      el.className = "bub " + (msg.role === "user" ? "me" : "ai");
       if (msg.image) {
-        el.innerHTML = '<img alt="" src="' + msg.image + '" />';
+        var im = document.createElement("img");
+        im.alt = "";
+        im.src = msg.image;
+        el.appendChild(im);
       }
-      if (msg.content) {
-        el.appendChild(document.createTextNode(msg.content));
-      }
+      if (msg.content) el.appendChild(document.createTextNode(msg.content));
       if (msg.model) {
         var meta = document.createElement("span");
         meta.className = "meta";
@@ -384,18 +457,10 @@
     log.scrollTop = log.scrollHeight;
   }
 
-  function sysPrompt() {
-    var a = state.agent;
-    var p = [];
-    if (a.name) p.push("Nazywasz się " + a.name + ".");
-    if (a.role) p.push("Twoja rola: " + a.role + ".");
-    if (a.system) p.push(a.system);
-    return p.join(" ");
-  }
-
   function setBusy(on) {
-    busy = on;
-    $("chat-busy").className = on ? "busy show" : "busy";
+    busy = !!on;
+    var b = $("chat-busy");
+    if (b) b.className = on ? "busy show" : "busy";
   }
 
   function kindOf(base) {
@@ -405,63 +470,40 @@
     return "openai";
   }
 
+  function sysPrompt() {
+    var a = state.agent;
+    return [a.name ? "Nazywasz się " + a.name + "." : "", a.role ? "Twoja rola: " + a.role + "." : "", a.system || ""].join(" ");
+  }
+
   function buildRequest(model, messages, stream) {
     var kind = kindOf(model.base);
     var root = String(model.base || "").replace(/\/+$/, "");
+    var i;
     if (kind === "anthropic") {
       var turns = [];
-      var i;
       for (i = 0; i < messages.length; i++) {
         if (messages[i].role === "system") continue;
-        turns.push({
-          role: messages[i].role === "assistant" ? "assistant" : "user",
-          content: messages[i].content
-        });
+        turns.push({ role: messages[i].role === "assistant" ? "assistant" : "user", content: messages[i].content });
       }
       return {
         url: root + "/messages",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": model.key,
-          "anthropic-version": "2023-06-01"
-        },
-        body: {
-          model: model.modelId,
-          max_tokens: state.maxTokens || 2048,
-          temperature: state.agent.temperature,
-          stream: !!stream,
-          system: sysPrompt(),
-          messages: turns
-        }
+        headers: { "Content-Type": "application/json", "x-api-key": model.key, "anthropic-version": "2023-06-01" },
+        body: { model: model.modelId, max_tokens: state.maxTokens || 1024, temperature: state.agent.temperature, stream: !!stream, system: sysPrompt(), messages: turns }
       };
     }
     if (kind === "gemini") {
       var contents = [];
-      var j;
-      for (j = 0; j < messages.length; j++) {
-        if (messages[j].role === "system") continue;
-        contents.push({
-          role: messages[j].role === "assistant" ? "model" : "user",
-          parts: [{ text: messages[j].content }]
-        });
+      for (i = 0; i < messages.length; i++) {
+        if (messages[i].role === "system") continue;
+        contents.push({ role: messages[i].role === "assistant" ? "model" : "user", parts: [{ text: messages[i].content }] });
       }
       return {
         url: root + "/models/" + model.modelId + (stream ? ":streamGenerateContent?alt=sse&key=" : ":generateContent?key=") + encodeURIComponent(model.key),
         headers: { "Content-Type": "application/json" },
-        body: {
-          system_instruction: { parts: [{ text: sysPrompt() }] },
-          contents: contents,
-          generationConfig: {
-            temperature: state.agent.temperature,
-            maxOutputTokens: state.maxTokens || 2048
-          }
-        }
+        body: { system_instruction: { parts: [{ text: sysPrompt() }] }, contents: contents, generationConfig: { temperature: state.agent.temperature, maxOutputTokens: state.maxTokens || 1024 } }
       };
     }
-    var headers = {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + model.key
-    };
+    var headers = { "Content-Type": "application/json", "Authorization": "Bearer " + model.key };
     if (String(model.base).indexOf("openrouter") !== -1) {
       headers["HTTP-Referer"] = "https://appassets.androidplatform.net/";
       headers["X-Title"] = "Czarne Wilki";
@@ -469,162 +511,76 @@
     return {
       url: root + "/chat/completions",
       headers: headers,
-      body: {
-        model: model.modelId,
-        stream: !!stream,
-        temperature: state.agent.temperature,
-        max_tokens: state.maxTokens || 2048,
-        messages: messages
-      }
+      body: { model: model.modelId, stream: !!stream, temperature: state.agent.temperature, max_tokens: state.maxTokens || 1024, messages: messages }
     };
   }
 
   function extractPlain(kind, j) {
     if (!j) return "";
+    var i, t;
     if (kind === "anthropic") {
+      t = "";
       var blocks = j.content || [];
-      var t = "", b;
-      for (b = 0; b < blocks.length; b++) if (blocks[b].text) t += blocks[b].text;
+      for (i = 0; i < blocks.length; i++) if (blocks[i].text) t += blocks[i].text;
       return t;
     }
     if (kind === "gemini") {
-      var cands = j.candidates || [];
-      if (!cands[0] || !cands[0].content || !cands[0].content.parts) return "";
-      return cands[0].content.parts[0].text || "";
+      try { return j.candidates[0].content.parts[0].text || ""; } catch (e) { return ""; }
     }
-    var c = j.choices && j.choices[0];
-    return (c && c.message && c.message.content) || "";
+    try { return j.choices[0].message.content || ""; } catch (e) { return ""; }
+  }
+
+  function finishLocal(text) {
+    var reply = localReply(text);
+    state.messages.push({ role: "assistant", content: reply, model: "Wilk lokalny" });
+    save();
+    drawChat();
+    setBusy(false);
   }
 
   function sendText(text) {
     var model = activeModel();
-    if (!model) { toast("Wejdź w Modele, wklej klucz OpenRouter i naciśnij Zapisz."); return; }
-    if (!state.online) { toast("Tryb Offline — włącz Sieciowy w Modelach."); return; }
-    if (!model.key) { toast("Model nie ma klucza API."); return; }
     state.messages.push({ role: "user", content: text });
     save();
     drawChat();
+    if (!model || !model.key || !state.online) {
+      finishLocal(text);
+      return;
+    }
     setBusy(true);
-
     var messages = [{ role: "system", content: sysPrompt() }];
     var i;
     for (i = 0; i < state.messages.length; i++) {
       var m = state.messages[i];
-      if (m.content && (m.role === "user" || m.role === "assistant")) {
-        messages.push({ role: m.role, content: m.content });
-      }
+      if (m.content && (m.role === "user" || m.role === "assistant")) messages.push({ role: m.role, content: m.content });
     }
-
-    var built = buildRequest(model, messages, true);
-    var builtPlain = buildRequest(model, messages, false);
-    var url = built.url;
-    var headers = built.headers;
-    var bodyStream = built.body;
-    var bodyPlain = builtPlain.body;
-
-    fetch(url, { method: "POST", headers: headers, body: JSON.stringify(bodyStream) })
+    var built = buildRequest(model, messages, false);
+    fetch(built.url, { method: "POST", headers: built.headers, body: JSON.stringify(built.body) })
       .then(function (res) {
-        if (!res.ok) {
-          return res.text().then(function (t) {
-            throw new Error("HTTP " + res.status + " " + String(t).slice(0, 180));
-          });
-        }
-        if (res.body && typeof res.body.getReader === "function") {
-          return readStream(res).then(function (acc) { return acc; });
-        }
-        return fetch(url, { method: "POST", headers: headers, body: JSON.stringify(bodyPlain) })
-          .then(function (r2) { return r2.json(); })
-          .then(function (j) {
-            return extractPlain(kindOf(model.base), j);
-          });
+        if (!res.ok) return res.text().then(function (t) { throw new Error("HTTP " + res.status + " " + String(t).slice(0, 160)); });
+        return res.json();
       })
-      .then(function (acc) {
-        state.messages.push({ role: "assistant", content: acc || "(pusta odpowiedź)", model: model.display });
+      .then(function (j) {
+        var acc = extractPlain(kindOf(model.base), j);
+        if (!acc) throw new Error("pusta odpowiedź chmury");
+        state.messages.push({ role: "assistant", content: acc, model: model.display });
         save();
         drawChat();
+        setBusy(false);
       })
       .catch(function (err) {
-        // drugi strzał bez streamu — starsze WebView
-        fetch(url, { method: "POST", headers: headers, body: JSON.stringify(bodyPlain) })
-          .then(function (r) {
-            if (!r.ok) return r.text().then(function (t) { throw new Error("HTTP " + r.status + " " + String(t).slice(0, 180)); });
-            return r.json();
-          })
-          .then(function (j) {
-            var msg2 = extractPlain(kindOf(model.base), j);
-            state.messages.push({ role: "assistant", content: msg2 || "(pusta odpowiedź)", model: model.display });
-            save();
-            drawChat();
-          })
-          .catch(function (e2) {
-            toast("Błąd: " + (e2 && e2.message ? e2.message : err.message) + " — sprawdź klucz i sieć.");
-          })
-          .then(function () { setBusy(false); });
-        return;
-      })
-      .then(function () { if (busy) setBusy(false); });
-  }
-
-  function readStream(res) {
-    var reader = res.body.getReader();
-    var dec = new TextDecoder();
-    var buf = "";
-    var acc = "";
-    var log = $("chat-log");
-    var bubble = document.createElement("div");
-    bubble.className = "bubble ai";
-    log.appendChild(bubble);
-
-    function pump() {
-      return reader.read().then(function (part) {
-        if (part.done) {
-          bubble.textContent = acc;
-          return acc;
-        }
-        buf += dec.decode(part.value, { stream: true });
-        var lines = buf.split("\n");
-        buf = lines.pop() || "";
-        var li;
-        for (li = 0; li < lines.length; li++) {
-          var line = lines[li].replace(/\r$/, "").trim();
-          if (line.indexOf("data:") !== 0) continue;
-          var payload = line.slice(5).trim();
-          if (payload === "[DONE]") continue;
-          try {
-            var json = JSON.parse(payload);
-            var piece = null;
-            if (json.choices && json.choices[0] && json.choices[0].delta) {
-              piece = json.choices[0].delta.content;
-            } else if (json.type === "content_block_delta" && json.delta) {
-              piece = json.delta.text;
-            } else if (json.candidates && json.candidates[0] && json.candidates[0].content) {
-              var pts = json.candidates[0].content.parts;
-              piece = pts && pts[0] && pts[0].text;
-            }
-            if (piece) {
-              acc += piece;
-              bubble.textContent = acc + " ▍";
-              log.scrollTop = log.scrollHeight;
-            }
-          } catch (ignore) {}
-        }
-        return pump();
+        toast("Chmura nie odpowiedziała (" + (err && err.message ? err.message : "błąd") + "). Odpowiadam lokalnie.");
+        finishLocal(text);
       });
-    }
-    return pump();
   }
 
   function genImage(prompt) {
     if (!state.online) { toast("Obrazy wymagają trybu Sieciowego."); return; }
     setBusy(true);
     go("chat");
-    var url = "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt) +
-      "?width=768&height=768&nologo=true&seed=" + (Date.now() % 100000);
+    var url = "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt) + "?width=768&height=768&nologo=true&seed=" + (Date.now() % 100000);
     fetch(url)
-      .then(function (r) {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.blob();
-      })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.blob(); })
       .then(function (blob) {
         return new Promise(function (resolve, reject) {
           var fr = new FileReader();
@@ -635,34 +591,28 @@
       })
       .then(function (data) {
         state.messages.push({ role: "user", content: prompt });
-        state.messages.push({ role: "assistant", content: "Wygenerowano obraz.", image: data });
+        state.messages.push({ role: "assistant", content: "Wygenerowano obraz.", image: data, model: "Pollinations" });
         save();
         drawChat();
       })
-      .catch(function (e) { toast("Obraz: " + e.message); })
+      .catch(function (e) { toast("Obraz: " + (e && e.message ? e.message : "błąd sieci")); })
       .then(function () { setBusy(false); });
   }
 
   function drawModels() {
     var box = $("model-list");
-    box.innerHTML = "";
+    if (!box) return;
+    box.innerHTML = '<div class="item act"><div class="grow"><h3>Wilk lokalny</h3><p>Zawsze dostępny. Zero klucza, zero sieci.</p></div></div>';
     var i;
     for (i = 0; i < state.models.length; i++) {
       (function (m) {
         var el = document.createElement("div");
         el.className = "item" + (m.id === state.activeId ? " act" : "");
-        el.innerHTML = '<div class="grow"><h3>' + esc(m.display) + "</h3><p>" + esc(m.modelId) +
-          "</p></div><button type='button' class='ib'>✕</button>";
-        el.querySelector(".grow").onclick = function () {
-          state.activeId = m.id;
-          save();
-          drawModels();
-          toast("Aktywny: " + m.display);
-        };
+        el.innerHTML = '<div class="grow"><h3>' + esc(m.display) + "</h3><p>" + esc(m.modelId) + "</p></div><button type='button' class='ib'>✕</button>";
+        el.querySelector(".grow").onclick = function () { state.activeId = m.id; save(); drawModels(); toast("Aktywny: " + m.display); };
         el.querySelector("button").onclick = function (ev) {
           ev.stopPropagation();
-          var next = [];
-          var j;
+          var next = [], j;
           for (j = 0; j < state.models.length; j++) if (state.models[j].id !== m.id) next.push(state.models[j]);
           state.models = next;
           if (state.activeId === m.id) state.activeId = next.length ? next[0].id : null;
@@ -675,24 +625,26 @@
   }
 
   function fillAgent() {
-    $("ag-name").value = state.agent.name;
-    $("ag-role").value = state.agent.role;
-    $("ag-sys").value = state.agent.system;
-    $("ag-temp").value = state.agent.temperature;
-    $("temp-val").textContent = Number(state.agent.temperature).toFixed(2);
+    if ($("ag-name")) $("ag-name").value = state.agent.name;
+    if ($("ag-role")) $("ag-role").value = state.agent.role;
+    if ($("ag-sys")) $("ag-sys").value = state.agent.system;
+    if ($("ag-temp")) $("ag-temp").value = state.agent.temperature;
+    if ($("temp-val")) $("temp-val").textContent = Number(state.agent.temperature).toFixed(2);
   }
 
   function hasSpeech() {
-    return typeof window.speechSynthesis !== "undefined" && window.speechSynthesis;
+    return typeof window.speechSynthesis !== "undefined" && !!window.speechSynthesis;
   }
 
   function drawVoices() {
     var box = $("voice-list");
+    if (!box) return;
     if (!hasSpeech()) {
-      box.innerHTML = '<div class="card"><p class="muted">Ten WebView nie udostępnia TTS. Czat działa bez głosu.</p></div>';
+      box.innerHTML = '<div class="card"><p class="muted">Ten WebView nie ma TTS. Czat i zadania działają bez głosu.</p></div>';
       return;
     }
-    var voices = speechSynthesis.getVoices() || [];
+    var voices = [];
+    try { voices = speechSynthesis.getVoices() || []; } catch (e) { voices = []; }
     var pl = [], rest = [], i;
     for (i = 0; i < voices.length; i++) {
       if (String(voices[i].lang || "").toLowerCase().indexOf("pl") === 0) pl.push(voices[i]);
@@ -701,25 +653,16 @@
     var all = pl.concat(rest);
     box.innerHTML = "";
     if (!all.length) {
-      box.innerHTML = '<div class="card"><p class="muted">Brak głosów systemowych. Zainstaluj język polski w ustawieniach Androida → Język i wprowadzanie → TTS.</p></div>';
+      box.innerHTML = '<div class="card"><p class="muted">Brak głosów systemowych. Android → Język i wprowadzanie → TTS → zainstaluj język polski. Czat działa bez tego.</p></div>';
       return;
     }
     for (i = 0; i < all.length; i++) {
       (function (v, isPl) {
         var el = document.createElement("div");
         el.className = "item" + (state.voice.name === v.name ? " act" : "");
-        el.innerHTML = '<div class="grow"><h3>' + esc(v.name) + "</h3><p>" + esc(v.lang) +
-          (isPl ? " · polski" : "") + "</p></div><button type='button' class='ib'>▶</button>";
-        el.querySelector(".grow").onclick = function () {
-          state.voice.name = v.name;
-          save();
-          drawVoices();
-          toast("Głos: " + v.name);
-        };
-        el.querySelector("button").onclick = function (ev) {
-          ev.stopPropagation();
-          speak("Czarne Wilki. To jest próbka głosu " + v.name, v);
-        };
+        el.innerHTML = '<div class="grow"><h3>' + esc(v.name) + "</h3><p>" + esc(v.lang) + (isPl ? " · polski" : "") + "</p></div><button type='button' class='ib'>▶</button>";
+        el.querySelector(".grow").onclick = function () { state.voice.name = v.name; save(); drawVoices(); toast("Głos: " + v.name); };
+        el.querySelector("button").onclick = function (ev) { ev.stopPropagation(); speak("Czarne Wilki. To jest próbka głosu " + v.name, v); };
         box.appendChild(el);
       })(all[i], i < pl.length);
     }
@@ -727,29 +670,71 @@
 
   function speak(text, voiceObj) {
     if (!hasSpeech()) { toast("Brak TTS na tym urządzeniu."); return; }
-    speechSynthesis.cancel();
+    try { speechSynthesis.cancel(); } catch (e) {}
     var u = new SpeechSynthesisUtterance(text);
     u.rate = state.voice.rate || 1;
     u.pitch = state.voice.pitch || 1;
-    var voices = speechSynthesis.getVoices() || [];
-    var pick = voiceObj, i;
-    if (!pick) {
-      for (i = 0; i < voices.length; i++) if (voices[i].name === state.voice.name) pick = voices[i];
-    }
-    if (!pick) {
-      for (i = 0; i < voices.length; i++) if (String(voices[i].lang || "").indexOf("pl") === 0) pick = voices[i];
-    }
+    var voices = [], pick = voiceObj, i;
+    try { voices = speechSynthesis.getVoices() || []; } catch (e2) { voices = []; }
+    if (!pick) for (i = 0; i < voices.length; i++) if (voices[i].name === state.voice.name) pick = voices[i];
+    if (!pick) for (i = 0; i < voices.length; i++) if (String(voices[i].lang || "").indexOf("pl") === 0) pick = voices[i];
     if (pick) u.voice = pick;
-    speechSynthesis.speak(u);
+    try { speechSynthesis.speak(u); } catch (e3) { toast("TTS nie wystartował."); }
+  }
+
+  function drawTasks() {
+    var box = $("task-presets");
+    var out = $("task-out");
+    if (box) {
+      box.innerHTML = "";
+      var i;
+      for (i = 0; i < TASKS.length; i++) {
+        (function (task) {
+          var el = document.createElement("button");
+          el.type = "button";
+          el.className = "item";
+          el.innerHTML = '<div class="grow"><h3>' + esc(task.title) + "</h3><p>" + esc(task.hint) + "</p></div>";
+          el.onclick = function () { runTask(task.seed, task.title); };
+          box.appendChild(el);
+        })(TASKS[i]);
+      }
+    }
+    if (out) {
+      out.innerHTML = "";
+      if (!state.taskLog.length) {
+        out.innerHTML = '<div class="card"><p class="muted">Wybierz zadanie powyżej — wynik pojawi się tutaj.</p></div>';
+        return;
+      }
+      var j;
+      for (j = state.taskLog.length - 1; j >= 0; j--) {
+        var rec = state.taskLog[j];
+        var d = document.createElement("div");
+        d.className = "item";
+        d.innerHTML = '<div class="grow"><h3>' + esc(rec.title) + "</h3><p>" + esc(rec.result) + "</p></div>";
+        out.appendChild(d);
+      }
+    }
+  }
+
+  function runTask(goal, title) {
+    var g = String(goal || "").replace(/^\s+|\s+$/g, "");
+    if (!g) { toast("Wpisz cel albo wybierz gotowe zadanie."); return; }
+    var result = localReply(g);
+    state.taskLog.push({ title: title || "Zadanie", goal: g, result: result, at: Date.now() });
+    if (state.taskLog.length > 20) state.taskLog = state.taskLog.slice(-20);
+    save();
+    drawTasks();
+    toast("Zadanie wykonane: " + (title || "własne"));
+    if ($("task-out")) $("task-out").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function toggleMic() {
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { toast("Rozpoznawanie mowy niedostępne w tym WebView."); return; }
+    if (!SR) { toast("Rozpoznawanie mowy niedostępne. Pisz w polu."); return; }
     if (micOn) {
       micOn = false;
-      try { rec && rec.stop(); } catch (e) {}
-      $("btn-mic").className = "round alt";
+      try { if (rec) rec.stop(); } catch (e) {}
+      if ($("btn-mic")) $("btn-mic").className = "rd alt";
       return;
     }
     rec = new SR();
@@ -759,41 +744,27 @@
     rec.onresult = function (ev) {
       var t = "", i;
       for (i = 0; i < ev.results.length; i++) t += ev.results[i][0].transcript;
-      $("chat-input").value = t;
+      if ($("chat-input")) $("chat-input").value = t;
     };
     rec.onend = function () { if (micOn) { try { rec.start(); } catch (e) {} } };
-    rec.onerror = function () { toast("Mikrofon: odmowa lub brak silnika STT."); };
+    rec.onerror = function () { toast("Mikrofon: odmowa albo brak silnika STT."); };
     try { rec.start(); } catch (e) { toast("Nie uruchomiono mikrofonu."); return; }
     micOn = true;
-    $("btn-mic").className = "round alt live";
+    if ($("btn-mic")) $("btn-mic").className = "rd alt";
   }
 
   function exportBackup() {
     var payload = JSON.stringify({
-      format: "czarne-wilki-backup",
-      version: 1,
-      created_at: Date.now(),
-      agent: state.agent,
-      models: state.models.map(function (m) {
-        return { id: m.id, display: m.display, base: m.base, modelId: m.modelId };
-      }),
-      messages: state.messages
+      format: "czarne-wilki-backup", version: 1, created_at: Date.now(),
+      agent: state.agent, models: state.models.map(function (m) { return { id: m.id, display: m.display, base: m.base, modelId: m.modelId }; }),
+      messages: state.messages, taskLog: state.taskLog
     }, null, 2);
-    try {
-      var blob = new Blob([payload], { type: "application/json" });
-      var a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "czarne_wilki_backup.json";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      toast("Kopia przygotowana. Jeśli plik nie spadł — skopiuj z okna.");
-    } catch (e) {}
-    $("modal-title").textContent = "Kopia JSON — zaznacz i skopiuj";
-    $("modal-input").value = payload;
-    $("modal").className = "show";
-    $("modal-ok").textContent = "Zamknij";
-    $("modal-ok").onclick = function () { $("modal").className = ""; $("modal-ok").textContent = "Generuj"; };
+    if ($("modal-title")) $("modal-title").textContent = "Kopia JSON — zaznacz i skopiuj";
+    if ($("modal-input")) $("modal-input").value = payload;
+    if ($("modal-ok")) $("modal-ok").textContent = "Zamknij";
+    if ($("modal")) $("modal").className = "show";
+    if ($("modal-ok")) $("modal-ok").onclick = function () { $("modal").className = ""; $("modal-ok").textContent = "Generuj"; };
+    toast("Kopia w oknie — skopiuj tekst.");
   }
 
   function importBackup(file) {
@@ -809,6 +780,7 @@
           temperature: data.agent.temperature || 0.7
         };
         if (data.messages) state.messages = data.messages;
+        if (data.taskLog) state.taskLog = data.taskLog;
         save();
         toast("Zaimportowano kopię.");
       } catch (e) { toast("Import: " + e.message); }
@@ -816,112 +788,109 @@
     reader.readAsText(file);
   }
 
-  document.getElementById("app").addEventListener("click", function (ev) {
-    var t = ev.target;
-    while (t && t !== this) {
-      if (t.getAttribute && t.getAttribute("data-go")) {
-        go(t.getAttribute("data-go"));
-        return;
+  function bind() {
+    document.getElementById("app").addEventListener("click", function (ev) {
+      var t = ev.target;
+      while (t && t !== this) {
+        if (t.getAttribute && t.getAttribute("data-go")) { go(t.getAttribute("data-go")); return; }
+        t = t.parentNode;
       }
-      t = t.parentNode;
+    });
+    if ($("net-toggle")) $("net-toggle").onchange = function () { state.online = !!this.checked; save(); };
+    if ($("net-toggle-2")) $("net-toggle-2").onchange = function () { state.online = !!this.checked; save(); };
+    if ($("btn-send")) $("btn-send").onclick = function () {
+      var t = ($("chat-input").value || "").replace(/^\s+|\s+$/g, "");
+      if (!t || busy) return;
+      $("chat-input").value = "";
+      sendText(t);
+    };
+    if ($("chat-input")) $("chat-input").addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if ($("btn-send")) $("btn-send").click(); }
+    });
+    if ($("btn-new")) $("btn-new").onclick = function () {
+      state.messages = [{ role: "assistant", content: "Nowa rozmowa. Słucham.", model: "Wilk lokalny" }];
+      save(); drawChat(); toast("Nowa rozmowa.");
+    };
+    if ($("btn-mic")) $("btn-mic").onclick = toggleMic;
+    if ($("btn-img")) $("btn-img").onclick = function () {
+      $("modal-title").textContent = "Generowanie obrazu";
+      $("modal-input").value = "";
+      $("modal-ok").textContent = "Generuj";
+      $("modal").className = "show";
+      $("modal-ok").onclick = function () {
+        var p = ($("modal-input").value || "").replace(/^\s+|\s+$/g, "");
+        $("modal").className = "";
+        if (p) genImage(p);
+      };
+    };
+    if ($("modal-cancel")) $("modal-cancel").onclick = function () { $("modal").className = ""; };
+    var presets = document.querySelectorAll(".pr"), pi;
+    for (pi = 0; pi < presets.length; pi++) {
+      presets[pi].onclick = function () {
+        if ($("m-base")) $("m-base").value = this.getAttribute("data-base");
+        if ($("m-id")) $("m-id").value = this.getAttribute("data-model");
+        toast("Ustawiono " + this.textContent + ". Wklej klucz albo zostaw puste = Wilk lokalny.");
+      };
     }
-  });
-
-  $("net-toggle").onchange = function () { setOnline(this.checked); };
-  $("net-toggle-2").onchange = function () { setOnline(this.checked); };
-
-  $("btn-send").onclick = function () {
-    var t = $("chat-input").value.replace(/^\s+|\s+$/g, "");
-    if (!t || busy) return;
-    $("chat-input").value = "";
-    sendText(t);
-  };
-  $("chat-input").addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      $("btn-send").click();
+    if ($("btn-save-model")) $("btn-save-model").onclick = function () {
+      var base = ($("m-base").value || "").replace(/^\s+|\s+$/g, "");
+      var key = ($("m-key").value || "").replace(/^\s+|\s+$/g, "");
+      var modelId = ($("m-id").value || "").replace(/^\s+|\s+$/g, "");
+      if (!base || !modelId) { toast("Uzupełnij Base URL i nazwę modelu."); return; }
+      if (!key) { toast("Bez klucza zostaje Wilk lokalny — i tak działa."); return; }
+      var entry = { id: "m" + Date.now(), display: modelId.split("/").pop(), base: base, key: key, modelId: modelId };
+      state.models.push(entry);
+      state.activeId = entry.id;
+      save();
+      drawModels();
+      toast("Chmura aktywna: " + entry.display);
+    };
+    if ($("btn-save-agent")) $("btn-save-agent").onclick = function () {
+      state.agent.name = $("ag-name").value;
+      state.agent.role = $("ag-role").value;
+      state.agent.system = $("ag-sys").value;
+      state.agent.temperature = Number($("ag-temp").value);
+      save();
+      toast("Zapisano profil " + state.agent.name + ".");
+    };
+    if ($("ag-temp")) $("ag-temp").oninput = function () { if ($("temp-val")) $("temp-val").textContent = Number(this.value).toFixed(2); };
+    if ($("tts-rate")) $("tts-rate").oninput = function () { state.voice.rate = Number(this.value); if ($("rate-val")) $("rate-val").textContent = state.voice.rate.toFixed(2); save(); };
+    if ($("tts-pitch")) $("tts-pitch").oninput = function () { state.voice.pitch = Number(this.value); if ($("pitch-val")) $("pitch-val").textContent = state.voice.pitch.toFixed(2); save(); };
+    if ($("btn-export")) $("btn-export").onclick = exportBackup;
+    if ($("btn-import")) $("btn-import").onclick = function () { $("import-file").click(); };
+    if ($("import-file")) $("import-file").onchange = function () { if (this.files && this.files[0]) importBackup(this.files[0]); };
+    if ($("btn-run-task")) $("btn-run-task").onclick = function () {
+      runTask(($("task-goal").value || ""), "Własne");
+    };
+    if (hasSpeech()) {
+      try {
+        speechSynthesis.onvoiceschanged = function () {
+          if ($("voices") && $("voices").className.indexOf("on") !== -1) drawVoices();
+        };
+      } catch (e) {}
     }
-  });
-  $("btn-new").onclick = function () { state.messages = []; save(); drawChat(); toast("Nowa rozmowa."); };
-  $("btn-mic").onclick = toggleMic;
-  $("btn-img").onclick = function () {
-    $("modal-title").textContent = "Generowanie obrazu";
-    $("modal-input").value = "";
-    $("modal-ok").textContent = "Generuj";
-    $("modal").className = "show";
-    $("modal-ok").onclick = function () {
-      var p = $("modal-input").value.replace(/^\s+|\s+$/g, "");
-      $("modal").className = "";
-      if (p) genImage(p);
-    };
-  };
-  $("modal-cancel").onclick = function () { $("modal").className = ""; };
+    if ($("tts-rate")) $("tts-rate").value = state.voice.rate || 1;
+    if ($("tts-pitch")) $("tts-pitch").value = state.voice.pitch || 1;
+    if ($("rate-val")) $("rate-val").textContent = Number(state.voice.rate || 1).toFixed(2);
+    if ($("pitch-val")) $("pitch-val").textContent = Number(state.voice.pitch || 1).toFixed(2);
 
-  var presets = document.querySelectorAll(".preset");
-  var pi;
-  for (pi = 0; pi < presets.length; pi++) {
-    presets[pi].onclick = function () {
-      $("m-base").value = this.getAttribute("data-base");
-      $("m-id").value = this.getAttribute("data-model");
-      toast("Ustawiono " + this.textContent + " — wklej klucz i zapisz.");
-    };
+    var ram = 0, tier = "mid", ctx = 4096, tok = 1024;
+    try { ram = navigator.deviceMemory || 0; } catch (e) { ram = 0; }
+    if (ram && ram <= 3) { tier = "low"; ctx = 2048; tok = 512; }
+    else if (ram && ram >= 12) { tier = "ultra"; ctx = 16384; tok = 2048; }
+    else if (ram && ram >= 8) { tier = "high"; ctx = 8192; tok = 2048; }
+    state.maxTokens = tok;
+    if ($("tier-hint")) {
+      $("tier-hint").textContent = ram
+        ? ("~" + ram + " GB RAM → tier " + tier + ". Kontekst " + ctx + ", max tokenów " + tok + ".")
+        : "Brak odczytu RAM. Domyślnie mid: kontekst 4096, max tokenów 1024.";
+    }
+    paint();
+    fillAgent();
   }
-  $("btn-save-model").onclick = function () {
-    var base = $("m-base").value.replace(/^\s+|\s+$/g, "");
-    var key = $("m-key").value.replace(/^\s+|\s+$/g, "");
-    var modelId = $("m-id").value.replace(/^\s+|\s+$/g, "");
-    if (!base || !key || !modelId) { toast("Uzupełnij Base URL, klucz i nazwę modelu."); return; }
-    var entry = {
-      id: "m" + Date.now(),
-      display: modelId.split("/").pop(),
-      base: base,
-      key: key,
-      modelId: modelId
-    };
-    state.models.push(entry);
-    state.activeId = entry.id;
-    save();
-    drawModels();
-    toast("Model aktywny: " + entry.display + ". Wróć do Czatu.");
-  };
 
-  $("btn-save-agent").onclick = function () {
-    state.agent.name = $("ag-name").value;
-    state.agent.role = $("ag-role").value;
-    state.agent.system = $("ag-sys").value;
-    state.agent.temperature = Number($("ag-temp").value);
-    save();
-    toast("Zapisano profil.");
-  };
-  $("ag-temp").oninput = function () { $("temp-val").textContent = Number(this.value).toFixed(2); };
-  $("tts-rate").oninput = function () {
-    state.voice.rate = Number(this.value);
-    $("rate-val").textContent = state.voice.rate.toFixed(2);
-    save();
-  };
-  $("tts-pitch").oninput = function () {
-    state.voice.pitch = Number(this.value);
-    $("pitch-val").textContent = state.voice.pitch.toFixed(2);
-    save();
-  };
-  $("btn-export").onclick = exportBackup;
-  $("btn-import").onclick = function () { $("import-file").click(); };
-  $("import-file").onchange = function () {
-    if (this.files && this.files[0]) importBackup(this.files[0]);
-  };
-
-  if (hasSpeech()) {
-    speechSynthesis.onvoiceschanged = function () {
-      if ($("voices").className.indexOf("on") !== -1) drawVoices();
-    };
-  }
-  $("tts-rate").value = state.voice.rate || 1;
-  $("tts-pitch").value = state.voice.pitch || 1;
-  $("rate-val").textContent = Number(state.voice.rate || 1).toFixed(2);
-  $("pitch-val").textContent = Number(state.voice.pitch || 1).toFixed(2);
-  paint();
-  $("ok").textContent = "js-ok";
+  try { bind(); } catch (e) { toast("Start: " + e.message); }
 })();
-  </script>
+</script>
 </body>
 </html>
